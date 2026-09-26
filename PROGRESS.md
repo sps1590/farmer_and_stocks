@@ -31,13 +31,12 @@ Living record of what's built, decisions made with the owner, and a dated change
   WFP/HDX CSV (skipped when unchanged), TCB daily XLSX (first run back-fills
   ~2 years via each sheet's 1-month/1-year-ago columns).
 - Forecast (daily cron): series choice WFP national median → TCB Dhaka →
-  community medians; 1–9 month horizons stored in `price_forecasts`.
+  community medians; 1–12 month horizons stored in `price_forecasts`.
 
 ## Not built yet / next
 
 - Web Push delivery not yet verified on a real phone/Chrome (service worker
   registration is blocked in the embedded test browser).
-
 - Upazila-level location (districts only today).
 - Community prices are not yet used as a forecast series until ≥ 18 months exist.
 - Device trust scores (column exists, not yet updated from agreement with consensus).
