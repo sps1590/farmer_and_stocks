@@ -51,3 +51,6 @@ __pycache__/
 
 # local PGlite database
 .pglite-data/
+
+# vendor agent docs installed by the Vercel CLI
+.agents/
