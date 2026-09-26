@@ -255,6 +255,8 @@ const en = {
   outlook_3m: "3-month outlook",
   report_price: "Report price",
   close: "Close",
+  start_over: "Start over on this phone",
+  start_over_confirm: "This forgets your settings on this phone and shows the welcome screen again. Your past reports stay in the system.",
 } as const;
 
 export type DictKey = keyof typeof en;
@@ -505,6 +507,8 @@ const bn: Record<DictKey, string> = {
   outlook_3m: "৩ মাসের পূর্বাভাস",
   report_price: "দাম জানান",
   close: "বন্ধ",
+  start_over: "এই ফোনে নতুন করে শুরু করুন",
+  start_over_confirm: "এতে এই ফোনের সেটিংস মুছে স্বাগত পাতা আবার দেখাবে। আপনার আগের রিপোর্টগুলো থেকে যাবে।",
 };
 
 export type Lang = "en" | "bn";

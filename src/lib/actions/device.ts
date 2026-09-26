@@ -159,3 +159,10 @@ export async function removePushSubscription(): Promise<void> {
   await sql`UPDATE devices SET push_subscription = NULL WHERE id = ${device.id}`;
   revalidatePath("/", "layout");
 }
+
+/** "Start over" on this phone: forget the device cookie (the anonymous reports stay). */
+export async function startOver(): Promise<void> {
+  await requireDevice();
+  (await cookies()).delete("fs_device");
+  redirect("/welcome");
+}

@@ -5,6 +5,7 @@ import { DISTRICT_BY_KEY, DISTRICTS, DIVISIONS } from "@/lib/geo";
 import { fmtNum, t } from "@/lib/i18n";
 import { historyCoverage } from "@/lib/queries";
 import { SettingsForm } from "@/components/SettingsForm";
+import { StartOver } from "@/components/StartOver";
 
 export default async function MorePage() {
   const device = await requireDevice();
@@ -51,6 +52,8 @@ export default async function MorePage() {
         )}
         <p className="mt-2 text-xs text-muted">{t(lang, "attributions")}</p>
       </section>
+
+      <StartOver />
     </div>
   );
 }
