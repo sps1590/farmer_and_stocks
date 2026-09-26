@@ -54,3 +54,8 @@ __pycache__/
 
 # vendor agent docs installed by the Vercel CLI
 .agents/
+.claude/skills/
+skills-lock.json
+
+# public CA intermediates bundled for TLS verification (not secrets)
+!api/certs/*.pem
