@@ -85,19 +85,27 @@ export async function priceHistory(commodity: string, source: string, months = 3
   `) as { m: string; v: number }[]).reverse();
 }
 
+type SourcePrice = { date: string; price: number; min: number | null; max: number | null };
+
 export type CurrentPrice = {
   commodity: string;
-  tcb: { date: string; price: number; min: number | null; max: number | null } | null;
+  tcb: SourcePrice | null;
+  chaldal: SourcePrice | null;
+  shwapno: SourcePrice | null;
   wfp: { month: string; price: number } | null;
   crowd: { price: number; n: number } | null; // district, last 7 days
+  /** Mean of the regular (non-discounted) retail prices seen in the last 3 days (TCB, Chaldal, Shwapno). */
+  avg: { price: number; sources: string[] } | null;
 };
+
+const RETAIL_SOURCES = ["tcb", "chaldal", "shwapno"] as const;
 
 export async function currentPrices(district: string): Promise<Map<string, CurrentPrice>> {
   const sql = await getDb();
-  const tcb = (await sql`
-    SELECT DISTINCT ON (commodity) commodity, obs_date::text AS date, price::float, price_min::float AS min, price_max::float AS max
-    FROM ext_prices WHERE source = 'tcb' ORDER BY commodity, obs_date DESC
-  `) as { commodity: string; date: string; price: number; min: number | null; max: number | null }[];
+  const latest = (await sql`
+    SELECT DISTINCT ON (source, commodity) source, commodity, obs_date::text AS date, price::float, price_min::float AS min, price_max::float AS max
+    FROM ext_prices WHERE source IN ('tcb', 'chaldal', 'shwapno') ORDER BY source, commodity, obs_date DESC
+  `) as ({ source: (typeof RETAIL_SOURCES)[number]; commodity: string } & SourcePrice)[];
   const wfp = (await sql`
     WITH l AS (SELECT commodity, MAX(obs_date) AS d FROM ext_prices WHERE source = 'wfp' GROUP BY commodity)
     SELECT e.commodity, to_char(l.d, 'YYYY-MM') AS month, percentile_cont(0.5) WITHIN GROUP (ORDER BY e.price)::float AS price
@@ -112,16 +120,22 @@ export async function currentPrices(district: string): Promise<Map<string, Curre
   `) as { commodity: string; price: number; n: number }[];
 
   const out = new Map<string, CurrentPrice>();
-  const get = (k: string) => out.get(k) ?? out.set(k, { commodity: k, tcb: null, wfp: null, crowd: null }).get(k)!;
-  for (const r of tcb) get(r.commodity).tcb = { date: r.date, price: r.price, min: r.min, max: r.max };
+  const get = (k: string) =>
+    out.get(k) ?? out.set(k, { commodity: k, tcb: null, chaldal: null, shwapno: null, wfp: null, crowd: null, avg: null }).get(k)!;
+  for (const r of latest) get(r.commodity)[r.source] = { date: r.date, price: r.price, min: r.min, max: r.max };
   for (const r of wfp) get(r.commodity).wfp = { month: r.month, price: r.price };
   for (const r of crowd) get(r.commodity).crowd = { price: r.price, n: r.n };
+  const recent = Date.parse(bdToday()) - 3 * 86400_000;
+  for (const cp of out.values()) {
+    const fresh = RETAIL_SOURCES.filter((s) => cp[s] && Date.parse(cp[s]!.date) >= recent);
+    if (fresh.length) cp.avg = { price: fresh.reduce((a, s) => a + cp[s]!.price, 0) / fresh.length, sources: [...fresh] };
+  }
   return out;
 }
 
 /** Best available "price right now" for centring sliders and margin defaults. */
 export function referencePrice(commodity: string, cp: CurrentPrice | undefined): number {
-  return cp?.crowd?.price ?? cp?.tcb?.price ?? cp?.wfp?.price ?? COMMODITY_BY_KEY.get(commodity)?.ref ?? 100;
+  return cp?.crowd?.price ?? cp?.avg?.price ?? cp?.tcb?.price ?? cp?.wfp?.price ?? COMMODITY_BY_KEY.get(commodity)?.ref ?? 100;
 }
 
 export type DayForecast = { date: string; tmax: number | null; tmin: number | null; precip_mm: number | null; precip_prob: number | null; wind_max: number | null; weather_code: number | null };
@@ -192,4 +206,52 @@ export async function communityStats() {
            (SELECT COUNT(*)::int FROM price_reports) AS prices
   `) as { devices: number; weather: number; prices: number }[];
   return rows[0];
+}
+
+/** Monthly climate for a district from its stored 5-year daily history (needs >= 3 years). */
+export async function districtNormals(district: string): Promise<Normal[]> {
+  const sql = await getDb();
+  return (await sql`
+    SELECT EXTRACT(MONTH FROM obs_date)::int AS month, AVG(tmax)::float AS tmax, AVG(tmin)::float AS tmin,
+           (SUM(precip_mm) / COUNT(DISTINCT EXTRACT(YEAR FROM obs_date)))::float AS precip_mm
+    FROM weather_observed WHERE district = ${district} AND obs_date >= '2021-01-01'
+    GROUP BY 1 HAVING COUNT(DISTINCT EXTRACT(YEAR FROM obs_date)) >= 3 ORDER BY 1
+  `) as Normal[];
+}
+
+/** This month so far vs the same days in each of the previous 5 years. */
+export async function monthVsHistory(district: string) {
+  const sql = await getDb();
+  const today = bdToday();
+  const rows = (await sql`
+    WITH d AS (
+      SELECT EXTRACT(YEAR FROM obs_date)::int AS y, precip_mm, tmax
+      FROM weather_observed
+      WHERE district = ${district}
+        AND EXTRACT(MONTH FROM obs_date) = EXTRACT(MONTH FROM ${today}::date)
+        AND EXTRACT(DAY FROM obs_date) <= EXTRACT(DAY FROM ${today}::date)
+        AND obs_date >= ${today}::date - INTERVAL '6 years'
+    )
+    SELECT y, SUM(precip_mm)::float AS rain, AVG(tmax)::float AS tmax, COUNT(*)::int AS days FROM d GROUP BY y ORDER BY y
+  `) as { y: number; rain: number; tmax: number; days: number }[];
+  const year = Number(today.slice(0, 4));
+  const now = rows.find((r) => r.y === year) ?? null;
+  const past = rows.filter((r) => r.y < year && r.days >= 10);
+  if (!now || past.length < 3) return null;
+  return {
+    rainNow: now.rain,
+    rainAvg: past.reduce((a, r) => a + r.rain, 0) / past.length,
+    tmaxNow: now.tmax,
+    tmaxAvg: past.reduce((a, r) => a + r.tmax, 0) / past.length,
+    years: past.length,
+  };
+}
+
+export async function historyCoverage() {
+  const sql = await getDb();
+  const r = (await sql`
+    SELECT COUNT(DISTINCT district)::int AS districts, MIN(obs_date)::text AS since, COUNT(*)::int AS days
+    FROM weather_observed WHERE obs_date >= '2021-01-01'
+  `) as { districts: number; since: string | null; days: number }[];
+  return r[0];
 }

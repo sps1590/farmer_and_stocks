@@ -24,9 +24,11 @@ export async function submitWeather(input: z.input<typeof weatherSchema>): Promi
   const sql = await getDb();
   // One answer per device per slot per day; re-submitting just corrects it.
   await sql`
-    INSERT INTO weather_reports (device_id, district, report_date, slot, rain, heat, storm)
-    VALUES (${device.id}, ${device.district}, ${bdToday()}, ${w.slot}, ${w.rain}, ${w.heat}, ${w.storm})
-    ON CONFLICT (device_id, report_date, slot) DO UPDATE SET rain = EXCLUDED.rain, heat = EXCLUDED.heat, storm = EXCLUDED.storm, district = EXCLUDED.district
+    INSERT INTO weather_reports (device_id, district, upazila_id, union_id, lat, lon, report_date, slot, rain, heat, storm)
+    VALUES (${device.id}, ${device.district}, ${device.upazila_id}, ${device.union_id}, ${device.lat}, ${device.lon},
+            ${bdToday()}, ${w.slot}, ${w.rain}, ${w.heat}, ${w.storm})
+    ON CONFLICT (device_id, report_date, slot) DO UPDATE SET rain = EXCLUDED.rain, heat = EXCLUDED.heat, storm = EXCLUDED.storm,
+      district = EXCLUDED.district, upazila_id = EXCLUDED.upazila_id, union_id = EXCLUDED.union_id, lat = EXCLUDED.lat, lon = EXCLUDED.lon
   `;
   revalidatePath("/today");
   return {};
@@ -52,8 +54,9 @@ export async function submitPrice(input: z.input<typeof priceSchema>): Promise<{
 
   const sql = await getDb();
   await sql`
-    INSERT INTO price_reports (device_id, district, commodity, price_type, price, report_date, flagged)
-    VALUES (${device.id}, ${device.district}, ${p.commodity}, ${p.priceType}, ${p.price}, ${bdToday()}, ${flagged})
+    INSERT INTO price_reports (device_id, district, upazila_id, union_id, lat, lon, commodity, price_type, price, report_date, flagged)
+    VALUES (${device.id}, ${device.district}, ${device.upazila_id}, ${device.union_id}, ${device.lat}, ${device.lon},
+            ${p.commodity}, ${p.priceType}, ${p.price}, ${bdToday()}, ${flagged})
     ON CONFLICT (device_id, commodity, price_type, report_date) DO UPDATE SET price = EXCLUDED.price, flagged = EXCLUDED.flagged
   `;
   revalidatePath("/today");

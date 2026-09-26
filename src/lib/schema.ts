@@ -113,6 +113,40 @@ export const SCHEMA_STATEMENTS: string[] = [
   )`,
   `CREATE INDEX IF NOT EXISTS source_runs_source_idx ON source_runs (source, started_at DESC)`,
 
+  // v2: deeper location. upazila/union ids come from src/data/bd-admin.json;
+  // lat/lon is an optional one-tap GPS fix (rounded to ~100 m on save).
+  `ALTER TABLE devices ADD COLUMN IF NOT EXISTS upazila_id INTEGER`,
+  `ALTER TABLE devices ADD COLUMN IF NOT EXISTS union_id INTEGER`,
+  `ALTER TABLE devices ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
+  `ALTER TABLE devices ADD COLUMN IF NOT EXISTS lon DOUBLE PRECISION`,
+  `ALTER TABLE devices ADD COLUMN IF NOT EXISTS place_name TEXT`,
+  `ALTER TABLE weather_reports ADD COLUMN IF NOT EXISTS upazila_id INTEGER`,
+  `ALTER TABLE weather_reports ADD COLUMN IF NOT EXISTS union_id INTEGER`,
+  `ALTER TABLE weather_reports ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
+  `ALTER TABLE weather_reports ADD COLUMN IF NOT EXISTS lon DOUBLE PRECISION`,
+  `ALTER TABLE price_reports ADD COLUMN IF NOT EXISTS upazila_id INTEGER`,
+  `ALTER TABLE price_reports ADD COLUMN IF NOT EXISTS union_id INTEGER`,
+  `ALTER TABLE price_reports ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION`,
+  `ALTER TABLE price_reports ADD COLUMN IF NOT EXISTS lon DOUBLE PRECISION`,
+  `CREATE INDEX IF NOT EXISTS weather_observed_date_idx ON weather_observed (obs_date)`,
+
+  // Online retailer products we read regular (non-discounted) prices from.
+  `CREATE TABLE IF NOT EXISTS retail_products (
+    source TEXT NOT NULL,
+    url TEXT NOT NULL,
+    commodity TEXT NOT NULL,
+    name TEXT,
+    last_seen DATE,
+    PRIMARY KEY (source, url)
+  )`,
+
+  // Short-lived cache of Open-Meteo "current conditions", keyed by a ~5 km grid cell.
+  `CREATE TABLE IF NOT EXISTS weather_now (
+    key TEXT PRIMARY KEY,
+    fetched_at TIMESTAMPTZ NOT NULL,
+    data JSONB NOT NULL
+  )`,
+
   // Fixed-window rate limiter (device creation, report submission).
   `CREATE TABLE IF NOT EXISTS rate_limits (
     key TEXT PRIMARY KEY,

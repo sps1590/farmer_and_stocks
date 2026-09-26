@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { climateFit, computeMargin, probAbove, suggestCrops, type Normal, type PriceOutlook } from "./recommend.ts";
+import { climateFit, computeMargin, cropFlag, marginFlag, planWindow, priceFlag, probAbove, suggestCrops, type Normal, type PriceOutlook } from "./recommend.ts";
 import type { Crop } from "./catalog.ts";
 
 const wheat: Crop = { key: "wheat", commodity: "atta", name_en: "Wheat", name_bn: "গম", season: "rabi", plant: [11, 12], grow: 4, temp: [12, 25], water: "low" };
@@ -58,4 +58,27 @@ test("margin accounts for storage cost and losses", () => {
   assert.ok(Math.abs(m.breakEven - 53) < 1e-9);
   assert.ok(Math.abs(m.marginPct - (55 - 53) / 53) < 1e-9);
   assert.ok(m.probProfit > 0.5 && m.probProfit < 1);
+});
+
+
+test("price flags need a clear lean, not just a point estimate", () => {
+  assert.equal(priceFlag(outlook(110, 100, 120)), "green");
+  assert.equal(priceFlag(outlook(90, 80, 100)), "red");
+  assert.equal(priceFlag(outlook(101, 80, 125)), "orange");
+});
+
+test("margin and crop flags", () => {
+  const m = computeMargin({ buyPrice: 100, holdMonths: 3, storagePctPerMonth: 1, lossPct: 0, outlook: outlook(115, 108, 122) });
+  assert.equal(marginFlag(m), "green");
+  const bad = computeMargin({ buyPrice: 100, holdMonths: 6, storagePctPerMonth: 3, lossPct: 5, outlook: outlook(100, 90, 110) });
+  assert.equal(marginFlag(bad), "red");
+  assert.equal(cropFlag({ climateFit: 0.95, priceChange: 0.06 }), "green");
+  assert.equal(cropFlag({ climateFit: 0.9, priceChange: 0 }), "orange");
+  assert.equal(cropFlag({ climateFit: 0.4, priceChange: 0.2 }), "red");
+});
+
+test("12-month crop plan windows", () => {
+  assert.deepEqual([0, 2, 3, 5, 6, 11].map(planWindow), ["now", "now", "soon", "soon", "later", "later"]);
+  // With a 12-month lookahead every crop is placed somewhere in the year.
+  assert.equal(suggestCrops([wheat, jute], 10, normals, () => null, 11).length, 2);
 });

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { computeMargin, type PriceOutlook } from "@/lib/recommend";
+import { computeMargin, marginFlag, type PriceOutlook } from "@/lib/recommend";
+import { FlagPill } from "./Flag";
 import { fmtNum, fmtPct, fmtTaka } from "@/lib/i18n";
 import { useI18n } from "./I18nProvider";
 
@@ -65,10 +66,7 @@ export function TraderBoard({ items }: { items: BoardItem[] }) {
 
   return (
     <section className="space-y-3">
-      <div>
-        <h2 className="text-lg font-bold">{t("stock_now")}</h2>
-        <p className="text-sm text-muted">{t("stock_now_hint")}</p>
-      </div>
+      <p className="text-sm text-muted">{t("stock_now_hint")}</p>
 
       <div className="card space-y-2 p-3">
         <Stepper label={t("hold_months")} value={hold} set={setHold} min={1} max={6} step={1} fmt={monthsLabel} />
@@ -79,7 +77,7 @@ export function TraderBoard({ items }: { items: BoardItem[] }) {
       {sel && (
         <div className="card p-4">
           <p className="font-bold">
-            <span aria-hidden>{sel.it.icon}</span> {sel.it.name}
+            <span aria-hidden>{sel.it.icon}</span> {sel.it.name} <FlagPill flag={marginFlag(sel.m)} lang={lang} />
             {!sel.it.verified && <span className="chip ml-2">⚠ {t("low_data")}</span>}
           </p>
           <div className="mt-3">
@@ -146,6 +144,9 @@ export function TraderBoard({ items }: { items: BoardItem[] }) {
                     <span aria-hidden>{it.icon}</span> {it.name}
                     {!it.verified && <span className="ml-1 text-xs text-muted">⚠</span>}
                   </button>
+                  <span className="mt-1 block">
+                    <FlagPill flag={marginFlag(m)} lang={lang} />
+                  </span>
                 </td>
                 <td className={`num px-2 text-right font-bold ${m.marginPct >= 0 ? "text-good" : "text-bad"}`}>
                   {fmtPct(lang, m.marginPct, true)}

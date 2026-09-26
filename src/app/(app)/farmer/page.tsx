@@ -1,121 +1,86 @@
 import { requireDevice } from "@/lib/device";
-import { CROPS, SEASON_LABEL } from "@/lib/catalog";
+import { SEASON_LABEL } from "@/lib/catalog";
 import { DISTRICT_BY_KEY } from "@/lib/geo";
-import { dayName, fmtNum, fmtPct, monthName, t } from "@/lib/i18n";
-import { climateNormals, currentPrices, latestForecasts, localReportsToday, outlookFrom, weatherForecast } from "@/lib/queries";
-import { suggestCrops } from "@/lib/recommend";
-import { bdNow } from "@/lib/time";
+import { placeLabel } from "@/lib/admin-geo";
+import { fmtNum, fmtPct, monthName, t, type DictKey } from "@/lib/i18n";
+import { currentPrices, latestForecasts, monthVsHistory } from "@/lib/queries";
+import { cropPlan, type CropPlanItem } from "@/lib/market";
+import { planWindow } from "@/lib/recommend";
 import { ForecastCard } from "@/components/ForecastCard";
+import { FlagLegend, FlagPill } from "@/components/Flag";
 
-// WMO weather codes -> icon
-function wxIcon(code: number | null, precip: number | null) {
-  if (code === null) return (precip ?? 0) >= 1 ? "🌧️" : "⛅";
-  if (code >= 95) return "⛈️";
-  if (code >= 80) return "🌦️";
-  if (code >= 61) return "🌧️";
-  if (code >= 51) return "🌦️";
-  if (code >= 45) return "🌫️";
-  if (code >= 2) return "⛅";
-  return "☀️";
-}
+const WINDOWS = [
+  ["now", "plan_now"],
+  ["soon", "plan_soon"],
+  ["later", "plan_later"],
+] as const;
+const FLAG_RANK = { green: 0, orange: 1, red: 2 } as const;
 
-export default async function FarmerPage() {
+export default async function GrowPage() {
   const device = await requireDevice();
   const lang = device.lang;
   const district = DISTRICT_BY_KEY.get(device.district)!;
-
-  const [days, local, normals, forecasts, prices] = await Promise.all([
-    weatherForecast(device.district, 7),
-    localReportsToday(device.district),
-    climateNormals(district.division),
+  const [plan, history, forecasts, prices] = await Promise.all([
+    cropPlan(device.district),
+    monthVsHistory(device.district),
     latestForecasts(),
     currentPrices(device.district),
   ]);
 
-  const nowMonth = bdNow().getUTCMonth() + 1;
-  const suggestions = suggestCrops(CROPS, nowMonth, normals, (commodity, ahead) => outlookFrom(forecasts.get(commodity), ahead)).slice(0, 8);
-  const districtName = lang === "bn" ? district.name_bn : district.name_en;
+  const byWindow = (w: string) =>
+    plan.filter((p) => planWindow(p.monthsToPlant) === w).sort((a, b) => FLAG_RANK[a.flag] - FLAG_RANK[b.flag] || b.score - a.score);
+  const place = placeLabel(device, lang === "bn" ? district.name_bn : district.name_en, lang);
 
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-muted">{districtName}</p>
-        <h1 className="text-2xl font-bold">{t(lang, "farmer_title")}</h1>
+        <p className="text-sm text-muted">📍 {place}</p>
+        <h1 className="text-2xl font-extrabold">🌱 {t(lang, "grow_title")}</h1>
+        <p className="text-sm text-muted">{t(lang, "grow_hint")}</p>
       </header>
 
-      <section>
-        <h2 className="mb-2 text-lg font-bold">{t(lang, "weather_7day")}</h2>
-        {days.length ? (
-          <div className="card grid grid-cols-7 divide-x divide-border overflow-hidden text-center">
-            {days.map((d) => (
-              <div key={d.date} className="px-0.5 py-2">
-                <p className="text-xs font-semibold text-muted">{dayName(lang, d.date)}</p>
-                <p className="my-1 text-xl" aria-hidden>
-                  {wxIcon(d.weather_code, d.precip_mm)}
-                </p>
-                <p className="num text-sm font-bold">{d.tmax !== null ? `${fmtNum(lang, d.tmax)}°` : "–"}</p>
-                <p className="num text-xs text-muted">{d.tmin !== null ? `${fmtNum(lang, d.tmin)}°` : "–"}</p>
-                <p className="num mt-1 text-[11px] text-primary">💧{fmtNum(lang, d.precip_prob ?? 0)}%</p>
-              </div>
-            ))}
+      {history && (
+        <section className="card p-4">
+          <h2 className="section-title mb-3">📅 {t(lang, "weather_5y")}</h2>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-xl bg-surface-2 p-3">
+              <p className="text-xs text-muted">🌧️ {t(lang, "rain_so_far")}</p>
+              <p className="num text-2xl font-extrabold">{fmtNum(lang, history.rainNow)} mm</p>
+              <p className="num text-xs text-muted">
+                {t(lang, "avg_label")}: {fmtNum(lang, history.rainAvg)} mm ({fmtPct(lang, history.rainAvg ? history.rainNow / history.rainAvg - 1 : 0, true)})
+              </p>
+            </div>
+            <div className="rounded-xl bg-surface-2 p-3">
+              <p className="text-xs text-muted">🌡️ {t(lang, "max_temp")}</p>
+              <p className="num text-2xl font-extrabold">{fmtNum(lang, history.tmaxNow, 1)}°</p>
+              <p className="num text-xs text-muted">
+                {t(lang, "avg_label")}: {fmtNum(lang, history.tmaxAvg, 1)}° ({history.tmaxNow >= history.tmaxAvg ? "+" : ""}
+                {fmtNum(lang, history.tmaxNow - history.tmaxAvg, 1)}°)
+              </p>
+            </div>
           </div>
-        ) : (
-          <p className="card p-4 text-sm text-muted">{t(lang, "no_weather_yet")}</p>
-        )}
-        {local.n > 0 && (
-          <p className="mt-2 text-sm text-muted">
-            {t(lang, "local_reports")}: {fmtNum(lang, local.n)} {t(lang, "reports_count")} · 🌧️ {fmtPct(lang, local.rain / local.n)}
-            {local.storm > 0 && ` · 🌪️ ${fmtNum(lang, local.storm)}`}
-          </p>
-        )}
-      </section>
+        </section>
+      )}
+
+      <FlagLegend lang={lang} />
+
+      {WINDOWS.map(([w, label]) => {
+        const items = byWindow(w);
+        if (!items.length) return null;
+        return (
+          <section key={w}>
+            <h2 className="section-title mb-2">{t(lang, label)}</h2>
+            <ul className="grid gap-2">
+              {items.map((p) => (
+                <CropCard key={p.crop.key} p={p} lang={lang} />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
 
       <section>
-        <h2 className="text-lg font-bold">{t(lang, "crop_suggestions")}</h2>
-        <p className="mb-3 text-sm text-muted">{t(lang, "crop_suggestions_hint")}</p>
-        {suggestions.length ? (
-          <ol className="space-y-2">
-            {suggestions.map((s, i) => (
-              <li key={s.crop.key} className="card p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-bold">
-                      {fmtNum(lang, i + 1)}. {lang === "bn" ? s.crop.name_bn : s.crop.name_en}
-                    </p>
-                    <p className="text-xs text-muted">
-                      {SEASON_LABEL[s.crop.season][lang]} · {t(lang, "plant_in")}: {monthName(lang, s.plantMonth)} → {t(lang, "harvest_in")}: {monthName(lang, s.harvestMonth)}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="num text-lg font-bold text-primary">{fmtNum(lang, s.score * 100)}</p>
-                    <p className="text-[11px] text-muted">{t(lang, "score")}</p>
-                  </div>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="chip num">
-                    {t(lang, "climate_fit")} {fmtPct(lang, s.climateFit)}
-                  </span>
-                  {s.priceChange !== null && (
-                    <span className="chip num">
-                      {t(lang, "price_at_harvest")} {fmtPct(lang, s.priceChange, true)} ({fmtPct(lang, s.priceLo!, true)}…{fmtPct(lang, s.priceHi!, true)})
-                    </span>
-                  )}
-                </div>
-                <ul className="mt-2 space-y-0.5 text-xs text-muted">
-                  {s.reasons.map((r) => (
-                    <li key={r}>• {t(lang, r as Parameters<typeof t>[1])}</li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="card p-4 text-sm text-muted">{t(lang, "no_suggestions")}</p>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-bold">{t(lang, "your_prices")}</h2>
+        <h2 className="section-title mb-3">📈 {t(lang, "your_prices")}</h2>
         <div className="space-y-3">
           {device.commodities.map((k) => (
             <ForecastCard key={k} lang={lang} commodity={k} entry={forecasts.get(k)} current={prices.get(k)} />
@@ -123,5 +88,51 @@ export default async function FarmerPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function CropCard({ p, lang }: { p: CropPlanItem; lang: "en" | "bn" }) {
+  return (
+    <li className={`card flag-bar-${p.flag} p-3 pl-4`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-lg font-bold">{lang === "bn" ? p.crop.name_bn : p.crop.name_en}</p>
+          <p className="text-xs text-muted">
+            {SEASON_LABEL[p.crop.season][lang]} · {t(lang, "plant_in")} {monthName(lang, p.plantMonth)} → {t(lang, "harvest_in")}{" "}
+            {monthName(lang, p.harvestMonth)}
+          </p>
+        </div>
+        <FlagPill flag={p.flag} lang={lang} />
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <p className="text-muted">{t(lang, "climate_fit")}</p>
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuenow={Math.round(p.climateFit * 100)} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(p.climateFit * 100)}%` }} />
+          </div>
+          <p className="num mt-0.5 font-bold">{fmtPct(lang, p.climateFit)}</p>
+        </div>
+        <div>
+          <p className="text-muted">{t(lang, "price_at_harvest")}</p>
+          <p className="num mt-1 text-sm font-bold">
+            {p.priceChange !== null ? fmtPct(lang, p.priceChange, true) : "–"}
+            {p.priceLo !== null && p.priceHi !== null && (
+              <span className="font-normal text-muted">
+                {" "}
+                ({fmtPct(lang, p.priceLo, true)}…{fmtPct(lang, p.priceHi, true)})
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+      <details className="mt-2 text-xs text-muted">
+        <summary className="cursor-pointer">{t(lang, "details")}</summary>
+        <ul className="mt-1 space-y-0.5">
+          {p.reasons.map((r) => (
+            <li key={r}>• {t(lang, r as DictKey)}</li>
+          ))}
+        </ul>
+      </details>
+    </li>
   );
 }

@@ -178,3 +178,41 @@ export function computeMargin(i: MarginInput): MarginResult {
     probProfit: probAbove(outlook.quantiles, breakEven / scale),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Traffic-light flags. Always shown with an icon + label, never colour alone.
+//   green  = likely profitable / price rising
+//   orange = stable / uncertain
+//   red    = likely loss / price falling
+// ---------------------------------------------------------------------------
+
+export type Flag = "green" | "orange" | "red";
+
+/** Price direction over the outlook horizon, requiring the model to lean clearly one way. */
+export function priceFlag(o: PriceOutlook): Flag {
+  const change = o.point / o.last - 1;
+  const pUp = probAbove(o.quantiles, o.last);
+  if (change >= 0.03 && pUp >= 0.55) return "green";
+  if (change <= -0.03 && pUp <= 0.45) return "red";
+  return "orange";
+}
+
+/** Buy-now / sell-later trade after storage costs and losses. */
+export function marginFlag(m: MarginResult): Flag {
+  if (m.marginPct > 0.02 && m.probProfit >= 0.55) return "green";
+  if (m.marginPct < -0.02 && m.probProfit < 0.45) return "red";
+  return "orange";
+}
+
+/** Crop to plant: good climate fit and a harvest price that isn't expected to fall. */
+export function cropFlag(s: Pick<CropSuggestion, "climateFit" | "priceChange">): Flag {
+  const change = s.priceChange ?? 0;
+  if (s.climateFit < 0.6 || change <= -0.08) return "red";
+  if (s.climateFit >= 0.8 && change >= 0.03) return "green";
+  return "orange";
+}
+
+/** Planting window buckets for the 12-month crop plan. */
+export function planWindow(monthsToPlant: number): "now" | "soon" | "later" {
+  return monthsToPlant <= 2 ? "now" : monthsToPlant <= 5 ? "soon" : "later";
+}

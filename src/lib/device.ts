@@ -18,6 +18,11 @@ export type Device = {
   commodities: string[];
   pushes_per_day: number;
   has_push: boolean;
+  upazila_id: number | null;
+  union_id: number | null;
+  lat: number | null;
+  lon: number | null;
+  place_name: string | null;
 };
 
 function secret() {
@@ -66,7 +71,8 @@ export async function getDevice(): Promise<Device | null> {
   const sql = await getDb();
   const rows = (await sql`
     UPDATE devices SET last_seen = now() WHERE id = ${id}
-    RETURNING id, role, lang, district, commodities, pushes_per_day, (push_subscription IS NOT NULL) AS has_push
+    RETURNING id, role, lang, district, commodities, pushes_per_day, (push_subscription IS NOT NULL) AS has_push,
+      upazila_id, union_id, lat, lon, place_name
   `) as Device[];
   return rows[0] ?? null;
 }

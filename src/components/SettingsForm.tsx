@@ -3,12 +3,25 @@
 import { useState, useTransition } from "react";
 import { updateSetting } from "@/lib/actions/device";
 import { useI18n } from "./I18nProvider";
-import { DIVISIONS } from "@/lib/geo";
+import { LocationPicker, type LocationValue } from "./LocationPicker";
+import { GpsButton } from "./GpsButton";
 
 type Named = { key: string; name_en: string; name_bn: string };
 
 type Props = {
-  device: { role: "farmer" | "trader" | "both"; lang: "en" | "bn"; district: string; commodities: string[]; pushes: number };
+  device: {
+    role: "farmer" | "trader" | "both";
+    lang: "en" | "bn";
+    district: string;
+    division: string;
+    upazila: number | null;
+    union: number | null;
+    commodities: string[];
+    pushes: number;
+    lat: number | null;
+    lon: number | null;
+    place: string | null;
+  };
   divisions: Named[];
   districts: (Named & { division: string })[];
   commodities: (Named & { icon: string })[];
@@ -19,7 +32,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
   const { t, lang } = useI18n();
   const [pending, start] = useTransition();
   const [savedField, setSavedField] = useState<string | null>(null);
-  const [division, setDivision] = useState(districts.find((d) => d.key === device.district)?.division ?? DIVISIONS[0].key);
+  const [loc, setLoc] = useState<LocationValue>({ division: device.division, district: device.district, upazila: device.upazila, union: device.union });
   const [picked, setPicked] = useState(device.commodities);
   const name = (x: Named) => (lang === "bn" ? x.name_bn : x.name_en);
 
@@ -30,66 +43,60 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
     });
   }
 
-  const savedMark = (field: string) => (savedField === field && !pending ? <span className="ml-2 text-xs font-normal text-good">✓ {t("saved_settings")}</span> : null);
+  const savedMark = (field: string) =>
+    savedField === field && !pending ? <span className="ml-2 text-xs font-normal text-good">✓ {t("saved_settings")}</span> : null;
+
+  function saveLocation(v: LocationValue) {
+    if (!v.district) return;
+    save({ field: "location", value: { district: v.district, upazila: v.upazila, union: v.union } });
+  }
+
+  function setCommodities(next: string[]) {
+    if (!next.length) return;
+    setPicked(next);
+    save({ field: "commodities", value: next });
+  }
 
   return (
-    <div className="space-y-5" aria-busy={pending}>
-      <section>
-        <h2 className="mb-2 font-bold">
-          {t("language")}
-          {savedMark("lang")}
+    <div className="space-y-4" aria-busy={pending}>
+      <section className="card space-y-3 p-4">
+        <h2 className="section-title">
+          📍 {t("location_title")}
+          {savedMark("location")}
         </h2>
-        <div className="grid grid-cols-2 gap-2">
-          {(["bn", "en"] as const).map((l) => (
-            <button key={l} type="button" className="tap" aria-pressed={device.lang === l} onClick={() => save({ field: "lang", value: l })}>
-              {l === "bn" ? "বাংলা" : "English"}
-            </button>
-          ))}
+        <LocationPicker
+          lang={lang}
+          t={t}
+          divisions={divisions}
+          districts={districts}
+          value={loc}
+          onChange={setLoc}
+          onDone={saveLocation}
+        />
+        <div className="border-t border-border pt-3">
+          <p className="mb-2 text-sm font-semibold">{t("village_gps")}</p>
+          <GpsButton lang={lang} t={t} current={{ lat: device.lat, lon: device.lon, place: device.place }} />
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-2 font-bold">
-          {t("role")}
-          {savedMark("role")}
-        </h2>
-        <div className="grid grid-cols-3 gap-2">
-          {(["farmer", "trader", "both"] as const).map((r) => (
-            <button key={r} type="button" className="tap text-sm" aria-pressed={device.role === r} onClick={() => save({ field: "role", value: r })}>
-              {t(r === "farmer" ? "role_farmer" : r === "trader" ? "role_trader" : "role_both")}
-            </button>
-          ))}
+      <section className="card p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="section-title">
+            🧺 {t("commodities")}
+            {savedMark("commodities")}
+          </h2>
+          <span className="text-xs text-muted">
+            {picked.length} {t("selected_count")}
+          </span>
         </div>
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-bold">
-          {t("district")}
-          {savedMark("district")}
-        </h2>
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {divisions.map((d) => (
-            <button key={d.key} type="button" className="tap min-h-9 px-3 text-sm" aria-pressed={division === d.key} onClick={() => setDivision(d.key)}>
-              {name(d)}
-            </button>
-          ))}
+        <div className="mb-3 flex gap-2">
+          <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setCommodities(commodities.map((c) => c.key))}>
+            {t("select_all")}
+          </button>
+          <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setCommodities(picked.slice(0, 1))}>
+            {t("clear_all")}
+          </button>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {districts
-            .filter((d) => d.division === division)
-            .map((d) => (
-              <button key={d.key} type="button" className="tap text-sm" aria-pressed={device.district === d.key} onClick={() => save({ field: "district", value: d.key })}>
-                {name(d)}
-              </button>
-            ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-2 font-bold">
-          {t("commodities")}
-          {savedMark("commodities")}
-        </h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {commodities.map((c) => {
             const on = picked.includes(c.key);
@@ -98,33 +105,58 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
                 key={c.key}
                 type="button"
                 className="tap justify-start text-left text-sm"
+                aria-label={name(c)}
                 aria-pressed={on}
-                disabled={(on && picked.length === 1) || (!on && picked.length >= 12)}
-                onClick={() => {
-                  const next = on ? picked.filter((k) => k !== c.key) : [...picked, c.key];
-                  setPicked(next);
-                  save({ field: "commodities", value: next });
-                }}
+                disabled={on && picked.length === 1}
+                onClick={() => setCommodities(on ? picked.filter((k) => k !== c.key) : [...picked, c.key])}
               >
                 <span aria-hidden className="text-xl">{c.icon}</span>
-                {name(c)}
+                <span className="flex-1">{name(c)}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-2 font-bold">
-          {t("reminders")}
-          {savedMark("pushes")}
-        </h2>
-        <div className="grid grid-cols-4 gap-2">
-          {[0, 1, 2, 3].map((n) => (
-            <button key={n} type="button" className="tap" aria-pressed={device.pushes === n} onClick={() => save({ field: "pushes", value: n })}>
-              {n === 0 ? t("reminders_0") : lang === "bn" ? "০১২৩"[n] : n}
-            </button>
-          ))}
+      <section className="card grid gap-4 p-4">
+        <div>
+          <h2 className="section-title mb-2">
+            🌐 {t("language")}
+            {savedMark("lang")}
+          </h2>
+          <div className="grid grid-cols-2 gap-2">
+            {(["bn", "en"] as const).map((l) => (
+              <button key={l} type="button" className="tap" aria-pressed={device.lang === l} onClick={() => save({ field: "lang", value: l })}>
+                {l === "bn" ? "বাংলা" : "English"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h2 className="section-title mb-2">
+            👤 {t("role")}
+            {savedMark("role")}
+          </h2>
+          <div className="grid grid-cols-3 gap-2">
+            {(["farmer", "trader", "both"] as const).map((r) => (
+              <button key={r} type="button" className="tap text-sm" aria-pressed={device.role === r} onClick={() => save({ field: "role", value: r })}>
+                {t(r === "farmer" ? "role_farmer" : r === "trader" ? "role_trader" : "role_both")}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h2 className="section-title mb-2">
+            🔔 {t("reminders")}
+            {savedMark("pushes")}
+          </h2>
+          <div className="grid grid-cols-4 gap-2">
+            {[0, 1, 2, 3].map((n) => (
+              <button key={n} type="button" className="tap" aria-pressed={device.pushes === n} onClick={() => save({ field: "pushes", value: n })}>
+                {n === 0 ? t("reminders_0") : lang === "bn" ? "০১২৩"[n] : n}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
     </div>

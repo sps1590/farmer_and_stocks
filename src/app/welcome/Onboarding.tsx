@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { DictKey, Lang } from "@/lib/i18n";
 import { createDevice, setWelcomeLanguage } from "@/lib/actions/device";
+import { LocationPicker, type LocationValue } from "@/components/LocationPicker";
 
 type Named = { key: string; name_en: string; name_bn: string };
 
@@ -14,14 +15,13 @@ type Props = {
   commodities: (Named & { icon: string })[];
 };
 
-const STEPS = ["lang", "role", "division", "district", "commodities", "pushes"] as const;
+const STEPS = ["lang", "role", "location", "commodities", "pushes"] as const;
 
 export function Onboarding({ initialLang, dicts, divisions, districts, commodities }: Props) {
   const [lang, setLang] = useState<Lang>(initialLang);
   const [step, setStep] = useState(0);
   const [role, setRole] = useState<"farmer" | "trader" | "both" | null>(null);
-  const [division, setDivision] = useState<string | null>(null);
-  const [district, setDistrict] = useState<string | null>(null);
+  const [loc, setLoc] = useState<LocationValue>({ division: null, district: null, upazila: null, union: null });
   const [picked, setPicked] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -30,10 +30,16 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
   const go = (n: number) => setStep((s) => Math.min(STEPS.length - 1, Math.max(0, s + n)));
 
   function finish(pushes: number) {
-    if (!role || !district || !picked.length) return;
+    if (!role || !loc.district || !picked.length) return;
     setError(null);
     start(async () => {
-      const r = await createDevice({ role, lang, district, commodities: picked, pushes });
+      const r = await createDevice({
+        role,
+        lang,
+        location: { district: loc.district!, upazila: loc.upazila, union: loc.union },
+        commodities: picked,
+        pushes,
+      });
       if (r?.error) setError(r.error === "rate_limited" ? t("error_rate_limited") : t("error_generic"));
     });
   }
@@ -42,26 +48,29 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
   return (
     <div>
-      <header className="mb-5">
-        <p className="text-sm font-semibold text-primary">🌾 {t("app_name")}</p>
-        <div className="mt-3 flex gap-1" aria-hidden>
+      <header className="mb-6">
+        <p className="text-sm font-bold text-primary">🌾 {t("app_name")}</p>
+        <div className="mt-3 flex gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
-            <span key={s} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-border"}`} />
+            <span key={s} className={`h-2 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-border"}`} />
           ))}
         </div>
       </header>
 
       {current === "lang" && (
         <section>
-          <h1 className="text-2xl font-bold">{t("welcome_title")}</h1>
+          <p className="text-5xl" aria-hidden>
+            🌾
+          </p>
+          <h1 className="mt-3 text-3xl font-extrabold">{t("welcome_title")}</h1>
           <p className="mt-2 text-muted">{t("welcome_body")}</p>
-          <h2 className="mt-6 mb-3 font-semibold">{t("choose_language")}</h2>
+          <h2 className="mb-3 mt-8 font-bold">{t("choose_language")}</h2>
           <div className="grid grid-cols-2 gap-3">
             {(["bn", "en"] as const).map((l) => (
               <button
                 key={l}
                 type="button"
-                className="tap text-lg"
+                className="tap min-h-16 text-xl"
                 aria-pressed={lang === l}
                 onClick={() => {
                   setLang(l);
@@ -78,7 +87,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
       {current === "role" && (
         <section>
-          <h1 className="mb-4 text-2xl font-bold">{t("who_are_you")}</h1>
+          <h1 className="mb-4 text-2xl font-extrabold">{t("who_are_you")}</h1>
           <div className="grid gap-3">
             {([
               ["farmer", "🧑‍🌾", "role_farmer"],
@@ -88,71 +97,43 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
               <button
                 key={r}
                 type="button"
-                className="tap justify-start text-lg"
+                className="tap min-h-16 justify-start text-lg"
                 aria-pressed={role === r}
                 onClick={() => {
                   setRole(r);
                   go(1);
                 }}
               >
-                <span aria-hidden className="text-2xl">{icon}</span> {t(key)}
+                <span aria-hidden className="text-3xl">{icon}</span> {t(key)}
               </button>
             ))}
           </div>
         </section>
       )}
 
-      {current === "division" && (
+      {current === "location" && (
         <section>
-          <h1 className="mb-4 text-2xl font-bold">{t("choose_division")}</h1>
-          <div className="grid grid-cols-2 gap-3">
-            {divisions.map((d) => (
-              <button
-                key={d.key}
-                type="button"
-                className="tap"
-                aria-pressed={division === d.key}
-                onClick={() => {
-                  setDivision(d.key);
-                  setDistrict(null);
-                  go(1);
-                }}
-              >
-                {name(d)}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {current === "district" && (
-        <section>
-          <h1 className="mb-4 text-2xl font-bold">{t("choose_district")}</h1>
-          <div className="grid grid-cols-2 gap-3">
-            {districts
-              .filter((d) => d.division === division)
-              .map((d) => (
-                <button
-                  key={d.key}
-                  type="button"
-                  className="tap"
-                  aria-pressed={district === d.key}
-                  onClick={() => {
-                    setDistrict(d.key);
-                    go(1);
-                  }}
-                >
-                  {name(d)}
-                </button>
-              ))}
-          </div>
+          <h1 className="mb-4 text-2xl font-extrabold">📍 {t("location_title")}</h1>
+          <LocationPicker lang={lang} t={t} divisions={divisions} districts={districts} value={loc} onChange={setLoc} onDone={() => go(1)} />
         </section>
       )}
 
       {current === "commodities" && (
         <section>
-          <h1 className="text-2xl font-bold">{t("choose_commodities")}</h1>
-          <p className="mb-4 text-sm text-muted">{t("choose_commodities_hint")}</p>
+          <h1 className="text-2xl font-extrabold">{t("choose_commodities")}</h1>
+          <div className="mb-3 mt-2 flex items-center justify-between gap-2">
+            <span className="text-sm text-muted">
+              {picked.length} {t("selected_count")}
+            </span>
+            <span className="flex gap-2">
+              <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setPicked(commodities.map((c) => c.key))}>
+                {t("select_all")}
+              </button>
+              <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setPicked([])}>
+                {t("clear_all")}
+              </button>
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {commodities.map((c) => {
               const on = picked.includes(c.key);
@@ -161,29 +142,31 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
                   key={c.key}
                   type="button"
                   className="tap justify-start text-left text-sm"
+                  aria-label={name(c)}
                   aria-pressed={on}
-                  disabled={!on && picked.length >= 12}
                   onClick={() => setPicked((p) => (on ? p.filter((k) => k !== c.key) : [...p, c.key]))}
                 >
                   <span aria-hidden className="text-xl">{c.icon}</span>
-                  {name(c)}
+                  <span className="flex-1">{name(c)}</span>
                 </button>
               );
             })}
           </div>
-          <button type="button" className="btn-primary mt-5 w-full" disabled={!picked.length} onClick={() => go(1)}>
-            {t("next")}
-          </button>
+          <div className="sticky bottom-0 -mx-4 mt-4 bg-background/95 px-4 py-3 backdrop-blur">
+            <button type="button" className="btn-primary w-full" disabled={!picked.length} onClick={() => go(1)}>
+              {t("next")} →
+            </button>
+          </div>
         </section>
       )}
 
       {current === "pushes" && (
         <section>
-          <h1 className="text-2xl font-bold">{t("how_many_reminders")}</h1>
+          <h1 className="text-2xl font-extrabold">🔔 {t("how_many_reminders")}</h1>
           <p className="mb-4 text-muted">{t("reminders_hint")}</p>
           <div className="grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((n) => (
-              <button key={n} type="button" className="tap text-xl" disabled={pending} onClick={() => finish(n)}>
+              <button key={n} type="button" className="tap min-h-16 text-xl" disabled={pending} onClick={() => finish(n)}>
                 {n === 0 ? t("reminders_0") : lang === "bn" ? "০১২৩"[n] : n}
               </button>
             ))}

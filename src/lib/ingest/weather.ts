@@ -133,3 +133,49 @@ export async function ingestClimateNormals(): Promise<{ rows: number; message?: 
   `;
   return { rows: div.length };
 }
+
+// ---------------------------------------------------------------------------
+// 5-year daily history per district (Open-Meteo archive / ERA5).
+// The archive lags ~5 days; the forecast ingest's past_days covers the gap.
+// Backfilled a few districts per run so each run stays well inside
+// Open-Meteo's free-tier hourly budget; the daily cron finishes the rest.
+// ---------------------------------------------------------------------------
+
+export const HISTORY_START = "2021-01-01";
+const HISTORY_BATCH = 12;
+
+export async function ingestWeatherHistory(): Promise<{ rows: number; message?: string }> {
+  const sql = await getDb();
+  const end = new Date(Date.now() + 6 * 3600_000 - 6 * 86400_000).toISOString().slice(0, 10);
+  const expected = Math.floor((Date.parse(end) - Date.parse(HISTORY_START)) / 86400_000) - 10;
+  const counts = (await sql`
+    SELECT district, COUNT(*)::int AS n FROM weather_observed WHERE obs_date >= ${HISTORY_START}::date GROUP BY district
+  `) as { district: string; n: number }[];
+  const have = new Map(counts.map((c) => [c.district, c.n]));
+  const todo = DISTRICTS.filter((d) => (have.get(d.key) ?? 0) < expected).slice(0, HISTORY_BATCH);
+  if (!todo.length) return { rows: 0, message: "complete" };
+
+  const url =
+    `https://archive-api.open-meteo.com/v1/archive?latitude=${todo.map((d) => d.lat).join(",")}&longitude=${todo.map((d) => d.lon).join(",")}` +
+    `&start_date=${HISTORY_START}&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FDhaka`;
+  const data = await getJson<DailyBlock[] | DailyBlock>(url);
+  const blocks = Array.isArray(data) ? data : [data];
+
+  let rows = 0;
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    const key = todo[i].key;
+    const t = b.daily.time;
+    for (let s = 0; s < t.length; s += 4000) {
+      const slice = <T,>(a: T[]) => a.slice(s, s + 4000);
+      await sql`
+        INSERT INTO weather_observed (district, obs_date, tmax, tmin, precip_mm)
+        SELECT ${key}, d, x, n, p FROM unnest(${slice(t)}::date[], ${slice(b.daily.temperature_2m_max)}::real[], ${slice(b.daily.temperature_2m_min)}::real[], ${slice(b.daily.precipitation_sum)}::real[]) AS u(d, x, n, p)
+        ON CONFLICT (district, obs_date) DO UPDATE SET tmax = EXCLUDED.tmax, tmin = EXCLUDED.tmin, precip_mm = EXCLUDED.precip_mm
+      `;
+    }
+    rows += t.length;
+  }
+  const remaining = DISTRICTS.filter((d) => (have.get(d.key) ?? 0) < expected).length - todo.length;
+  return { rows, message: `${todo.length} districts backfilled, ${remaining} remaining` };
+}

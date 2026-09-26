@@ -33,6 +33,10 @@ Next.js 16 (App Router, Tailwind v4) ── Server Actions ──► Neon Postgr
 | [Open-Meteo](https://open-meteo.com) | 16-day forecast for all 64 districts, 10-year climate normals | CC BY 4.0 |
 | [WFP via HDX](https://data.humdata.org/dataset/wfp-food-prices-for-bangladesh) | Monthly district retail prices since 2004 | CC BY-IGO |
 | [TCB](https://tcb.gov.bd/pages/daily-rmps) | Daily Dhaka retail min/max (XLSX) | Govt. public data |
+| [Chaldal](https://chaldal.com) | Daily regular (non-discounted) retail prices, server-rendered category pages | Public web pages |
+| [Shwapno](https://www.shwapno.com) | Daily regular retail prices from product pages listed in its sitemaps (robots.txt respected: no `/api`, no query URLs) | Public web pages |
+| [bangladesh-geocode](https://github.com/nuhil/bangladesh-geocode) | Upazilas and unions (EN/BN) | MIT |
+| [OpenStreetMap Nominatim](https://nominatim.org) | Village name for a GPS fix | ODbL |
 | Community | Tap reports of weather and local prices | — |
 
 ### Forecasting model (api/index.py)
@@ -80,6 +84,6 @@ Tests: `npm test` (TS unit tests), `npm run test:py` (pytest),
    (Vercel → Settings → Cron Jobs → Run) to load data immediately.
 
 Cron schedule (UTC; Bangladesh = UTC+6), all daily as required by the Hobby plan:
-09:00 BDT reminder · 13:00 reminder · 16:00 data ingest · 18:00 reminder · 20:00 forecasts.
+09:00 BDT reminder · 13:00 reminder · 14:00 weather-history backfill · 16:00 data ingest · 17:00 Chaldal/Shwapno · 18:00 reminder · 20:00 forecasts.
 
 Forecasts are estimates, not financial advice.

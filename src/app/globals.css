@@ -19,6 +19,16 @@
   --chart-band: rgba(27, 110, 74, 0.12);
   --chart-grid: #e8e6dc;
   --ring: rgba(27, 110, 74, 0.3);
+  /* Traffic-light flags (always paired with an icon + label) */
+  --flag-green: #177a3c;
+  --flag-green-bg: #e2f4e8;
+  --flag-orange: #a45a00;
+  --flag-orange-bg: #fdf0dc;
+  --flag-red: #b42318;
+  --flag-red-bg: #fde6e3;
+  --hero-from: #1b6e4a;
+  --hero-to: #2f9a6a;
+  --hero-fg: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,6 +51,14 @@
     --chart-band: rgba(92, 192, 147, 0.16);
     --chart-grid: #2c322e;
     --ring: rgba(63, 168, 119, 0.4);
+    --flag-green: #6fd08e;
+    --flag-green-bg: #173424;
+    --flag-orange: #f0b35c;
+    --flag-orange-bg: #3a2a12;
+    --flag-red: #f28b7f;
+    --flag-red-bg: #3d1a17;
+    --hero-from: #15492f;
+    --hero-to: #1f6a47;
   }
 }
 
@@ -58,6 +76,12 @@
   --color-good: var(--good);
   --color-bad: var(--bad);
   --color-warn: var(--warn);
+  --color-flag-green: var(--flag-green);
+  --color-flag-green-bg: var(--flag-green-bg);
+  --color-flag-orange: var(--flag-orange);
+  --color-flag-orange-bg: var(--flag-orange-bg);
+  --color-flag-red: var(--flag-red);
+  --color-flag-red-bg: var(--flag-red-bg);
   --font-sans: var(--font-inter), var(--font-bengali), ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
@@ -158,4 +182,47 @@ input[type="range"].slider {
 
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  color: var(--hero-fg);
+  border-radius: 1.25rem;
+}
+.hero-night {
+  background: linear-gradient(135deg, #1d2b4a, #33477a);
+}
+.hero-rain {
+  background: linear-gradient(135deg, #2b4c6f, #4a7aa5);
+}
+
+/* Whole-row tap targets for lists */
+.row-tap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+  transition: background-color 0.12s ease;
+}
+.row-tap:active,
+.row-tap:hover {
+  background: var(--surface-2);
+}
+
+.flag-green { color: var(--flag-green); background: var(--flag-green-bg); }
+.flag-orange { color: var(--flag-orange); background: var(--flag-orange-bg); }
+.flag-red { color: var(--flag-red); background: var(--flag-red-bg); }
+.flag-bar-green { box-shadow: inset 4px 0 0 var(--flag-green); }
+.flag-bar-orange { box-shadow: inset 4px 0 0 var(--flag-orange); }
+.flag-bar-red { box-shadow: inset 4px 0 0 var(--flag-red); }
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
