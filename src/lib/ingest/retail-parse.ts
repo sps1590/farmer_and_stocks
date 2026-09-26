@@ -80,9 +80,11 @@ export function matches(m: Match | undefined, text: string) {
   return Boolean(m && m.include.test(text) && !(m.exclude && m.exclude.test(text)));
 }
 
-export function parseChaldal(html: string): { name: string; size: string; regular: number }[] {
+export type ChaldalProduct = { name: string; size: string; regular: number; sale: number | null };
+
+export function parseChaldal(html: string): ChaldalProduct[] {
   const h = html.replace(/ data-reactid="[^"]*"/g, "");
-  const out: { name: string; size: string; regular: number }[] = [];
+  const out: ChaldalProduct[] = [];
   const re = /<div class="textWrapper">([\s\S]*?)<div class="subText"><span>([^<]*)<\/span>/g;
   for (let m; (m = re.exec(h)); ) {
     const block = m[1];
@@ -90,7 +92,14 @@ export function parseChaldal(html: string): { name: string; size: string; regula
     // The regular price is always the one inside class="price" (nested inside
     // the discounted block when a discount runs).
     const regular = block.match(/<div class="price"><div class="currency">৳<\/div><span>([\d,.]+)<\/span>/)?.[1];
-    if (name && regular) out.push({ name: decode(name), size: decode(m[2].trim()), regular: Number(regular.replace(/,/g, "")) });
+    const sale = block.match(/<div class="productV2discountedPrice"><div class="currency">৳<\/div><span>([\d,.]+)<\/span>/)?.[1];
+    if (name && regular)
+      out.push({
+        name: decode(name),
+        size: decode(m[2].trim()),
+        regular: Number(regular.replace(/,/g, "")),
+        sale: sale ? Number(sale.replace(/,/g, "")) : null,
+      });
   }
   return out;
 }
@@ -99,7 +108,7 @@ function decode(s: string) {
   return s.replace(/&amp;/g, "&").replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"');
 }
 
-export function parseShwapno(html: string): { name: string; regular: number } | null {
+export function parseShwapno(html: string): { name: string; regular: number; sale: number | null } | null {
   const h = html.replace(/\\"/g, '"');
   const block = h.match(/"price":\{("oldPrice"[^}]*|"price":"[^"]*","priceValue"[^}]*)\}/)?.[1];
   const name = h.match(/"productName":"([^"]+)"/)?.[1];
@@ -107,6 +116,15 @@ export function parseShwapno(html: string): { name: string; regular: number } | 
   const old = block.match(/"oldPriceValue":([\d.]+)/)?.[1];
   const price = block.match(/"priceValue":([\d.]+)/)?.[1];
   const regular = Number(old ?? price);
-  return regular > 0 ? { name, regular } : null;
+  return regular > 0 ? { name, regular, sale: old && price ? Number(price) : null } : null;
 }
 
+
+/** Pack size in its natural unit for any product (kg, L or piece), used for per-unit comparison. */
+export function naturalPack(text: string): { qty: number; unit: "kg" | "L" | "piece" } | null {
+  for (const unit of ["kg", "L", "piece"] as const) {
+    const q = packSize(text, unit);
+    if (q) return { qty: q, unit };
+  }
+  return null;
+}

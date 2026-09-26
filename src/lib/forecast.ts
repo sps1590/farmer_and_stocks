@@ -8,8 +8,9 @@ import { bdToday, monthsBetween } from "./time";
 // forecasts with split-conformal 95% intervals.
 //
 // Series choice: WFP national median (long multi-market history) when it has
-// >= 24 months and is recent; otherwise TCB Dhaka monthly mean; otherwise
-// crowd-reported district medians pooled nationally.
+// >= 24 months and is recent; then the online grocers' daily regular prices
+// (Chaldal + Shwapno) once >= 18 months exist; then the TCB Dhaka market
+// survey; then crowd-reported medians.
 
 type PyHorizon = {
   horizon: number;
@@ -28,7 +29,7 @@ type PyResult = { ok: true; model: string; n: number; last_month: string; last_v
 
 type SeriesRow = { m: string; v: number };
 
-async function monthlySeries(source: "wfp" | "tcb" | "crowd", commodity: string): Promise<SeriesRow[]> {
+async function monthlySeries(source: "wfp" | "retail" | "tcb" | "crowd", commodity: string): Promise<SeriesRow[]> {
   const sql = await getDb();
   if (source === "crowd") {
     return (await sql`
@@ -37,16 +38,19 @@ async function monthlySeries(source: "wfp" | "tcb" | "crowd", commodity: string)
       GROUP BY 1 ORDER BY 1
     `) as SeriesRow[];
   }
+  // "retail" = the online grocers' daily regular prices (Chaldal + Shwapno).
+  const sources = source === "retail" ? ["chaldal", "shwapno"] : [source];
   return (await sql`
     SELECT to_char(obs_date, 'YYYY-MM') AS m, percentile_cont(0.5) WITHIN GROUP (ORDER BY price)::float AS v
-    FROM ext_prices WHERE source = ${source} AND commodity = ${commodity} AND price_type = 'retail'
+    FROM ext_prices WHERE source = ANY(${sources}::text[]) AND commodity = ${commodity} AND price_type = 'retail'
     GROUP BY 1 ORDER BY 1
   `) as SeriesRow[];
 }
 
 export async function pickSeries(commodity: string): Promise<{ source: string; rows: SeriesRow[] } | null> {
   const nowYm = bdToday().slice(0, 7);
-  for (const source of ["wfp", "tcb", "crowd"] as const) {
+  // Online-grocer history is preferred over the TCB survey once it is long enough.
+  for (const source of ["wfp", "retail", "tcb", "crowd"] as const) {
     const rows = await monthlySeries(source, commodity);
     const fresh = rows.length > 0 && monthsBetween(rows[rows.length - 1].m, nowYm) <= 6;
     const enough = rows.length >= (source === "wfp" ? 24 : 18);

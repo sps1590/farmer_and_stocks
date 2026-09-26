@@ -9,6 +9,8 @@ import { ForecastCard } from "@/components/ForecastCard";
 import { FlagPill } from "@/components/Flag";
 import { PriceReporter } from "@/components/PriceReporter";
 import { TraderBoard } from "@/components/TraderBoard";
+import { Change } from "@/components/DailyPrices";
+import { dailyBoard, productChanges } from "@/lib/daily";
 
 export default async function CommodityPage({ params }: PageProps<"/market/[commodity]">) {
   const { commodity } = await params;
@@ -16,7 +18,13 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
   if (!c) notFound();
   const device = await requireDevice();
   const lang = device.lang;
-  const [prices, forecasts] = await Promise.all([currentPrices(device.district), latestForecasts()]);
+  const [prices, forecasts, board, products] = await Promise.all([
+    currentPrices(device.district),
+    latestForecasts(),
+    dailyBoard(),
+    productChanges(commodity),
+  ]);
+  const daily = board.get(commodity);
   const cp = prices.get(commodity);
   const entry = forecasts.get(commodity);
   const o3 = outlookFrom(entry, 3);
@@ -24,7 +32,7 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
   const name = lang === "bn" ? c.name_bn : c.name_en;
 
   const sources: { key: DictKey; price: number | null; note?: string }[] = [
-    { key: "src_tcb", price: cp?.tcb?.price ?? null, note: cp?.tcb?.date },
+    { key: "src_tcb_survey", price: cp?.tcb?.price ?? null, note: cp?.tcb?.date },
     { key: "src_chaldal", price: cp?.chaldal?.price ?? null, note: cp?.chaldal?.date },
     { key: "src_shwapno", price: cp?.shwapno?.price ?? null, note: cp?.shwapno?.date },
     { key: "src_crowd", price: cp?.crowd?.price ?? null, note: cp?.crowd ? `n=${cp.crowd.n}` : undefined },
@@ -54,6 +62,16 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
             <span className="text-sm font-normal text-muted"> / {unit}</span>
           </p>
           <p className="text-xs text-muted">{t(lang, "no_discount_note")}</p>
+          {daily && (
+            <p className="mt-1 flex gap-3 text-xs">
+              <span>
+                {t(lang, "day_change")}: <Change value={daily.dayChange} lang={lang} />
+              </span>
+              <span>
+                {t(lang, "week_change")}: <Change value={daily.weekChange} lang={lang} />
+              </span>
+            </p>
+          )}
         </div>
         {o3 && (
           <div className="text-right">
@@ -78,6 +96,32 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
           ))}
         </ul>
       </section>
+
+      {products.length > 0 && (
+        <section>
+          <h2 className="section-title mb-2">🛒 {t(lang, "products_tracked")}</h2>
+          <ul className="card divide-y divide-border text-sm">
+            {products.map((p) => (
+              <li key={`${p.source}|${p.name}|${p.packSize}`} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold">{p.name}</span>
+                  <span className="block text-xs text-muted">
+                    {t(lang, p.source === "chaldal" ? "src_chaldal" : "src_shwapno")}
+                    {p.packSize && ` · ${p.packSize}`}
+                    {p.sale !== null && ` · ${t(lang, "sale_label")} ${fmtTaka(lang, p.sale)}`}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="num block font-bold">{fmtTaka(lang, p.regular)}</span>
+                  <span className="block text-xs">
+                    <Change value={p.change} lang={lang} />
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <ForecastCard lang={lang} commodity={commodity} entry={entry} current={cp} />
 

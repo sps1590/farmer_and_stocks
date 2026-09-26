@@ -140,6 +140,36 @@ export const SCHEMA_STATEMENTS: string[] = [
     PRIMARY KEY (source, url)
   )`,
 
+  // v3: every product price seen on a given day (for day-to-day comparison).
+  // commodity is NULL for products we store but don't map to a tracked commodity.
+  `CREATE TABLE IF NOT EXISTS retail_product_prices (
+    source TEXT NOT NULL,
+    product_key TEXT NOT NULL,
+    obs_date DATE NOT NULL,
+    name TEXT NOT NULL,
+    category TEXT,
+    commodity TEXT,
+    pack_size TEXT,
+    regular_price NUMERIC(12,2) NOT NULL,
+    sale_price NUMERIC(12,2),
+    per_unit_price NUMERIC(12,2),
+    url TEXT,
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (source, product_key, obs_date)
+  )`,
+  `CREATE INDEX IF NOT EXISTS retail_product_prices_date_idx ON retail_product_prices (obs_date, commodity)`,
+
+  // One row per "update today's price" run (button or cron); also the lock
+  // that stops concurrent or too-frequent scrapes.
+  `CREATE TABLE IF NOT EXISTS price_refresh_runs (
+    id BIGSERIAL PRIMARY KEY,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    finished_at TIMESTAMPTZ,
+    trigger TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'running' CHECK (status IN ('running','done','failed')),
+    summary JSONB
+  )`,
+
   // Short-lived cache of Open-Meteo "current conditions", keyed by a ~5 km grid cell.
   `CREATE TABLE IF NOT EXISTS weather_now (
     key TEXT PRIMARY KEY,

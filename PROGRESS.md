@@ -13,6 +13,20 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v3, 2026-09-27)
+
+- "Update today's price" button (Home + Market): one shared background
+  scrape (Chaldal, Shwapno, TCB) via `after()`; the client polls until done.
+  `price_refresh_runs` is both the log and the lock (joins a running run;
+  skips if one finished < 30 min ago; 6 taps/hour/device). Daily cron
+  `/api/cron/retail` runs the same job.
+- `retail_product_prices`: every product seen per day (regular + sale price,
+  pack size, per-unit price). Market "Today's prices" tab shows each
+  commodity vs yesterday and vs 7 days (like-for-like per source), and each
+  commodity page lists its tracked products with day-on-day change.
+- Forecast series order now WFP -> online grocers (Chaldal+Shwapno, once
+  >= 18 months) -> TCB survey -> community.
+
 ## What's built (v2, 2026-09-26)
 
 - Location down to division → district → upazila/thana → union (tap
@@ -74,6 +88,8 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-09-27 — v3: "Update today's price" button, per-product daily price
+  table and day/week change views; TCB relabelled as "market survey".
 - 2026-09-26 — v2: deeper location + GPS, 5-year weather history, Chaldal/Shwapno
   regular prices, traffic-light flags, 12-month crop plan, UI redesign.
 - 2026-09-26 — Deployed to https://farmer-and-stocks.vercel.app (Vercel project

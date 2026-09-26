@@ -77,9 +77,10 @@ export async function priceHistory(commodity: string, source: string, months = 3
       GROUP BY 1 ORDER BY 1 DESC LIMIT ${months}
     `) as { m: string; v: number }[]).reverse();
   }
+  const sources = source === "retail" ? ["chaldal", "shwapno"] : [source];
   return ((await sql`
     SELECT to_char(obs_date, 'YYYY-MM') AS m, percentile_cont(0.5) WITHIN GROUP (ORDER BY price)::float AS v
-    FROM ext_prices WHERE source = ${source} AND commodity = ${commodity} AND price_type = 'retail'
+    FROM ext_prices WHERE source = ANY(${sources}::text[]) AND commodity = ${commodity} AND price_type = 'retail'
       AND to_char(obs_date, 'YYYY-MM') <= ${until}
     GROUP BY 1 ORDER BY 1 DESC LIMIT ${months}
   `) as { m: string; v: number }[]).reverse();

@@ -5,7 +5,8 @@ import { PriceChart } from "./PriceChart";
 
 const SOURCE_LABEL: Record<string, { en: string; bn: string }> = {
   wfp: { en: "WFP national median", bn: "WFP জাতীয় মধ্যমা" },
-  tcb: { en: "TCB Dhaka retail", bn: "টিসিবি ঢাকা খুচরা" },
+  retail: { en: "Chaldal + Shwapno (regular prices)", bn: "চালডাল + স্বপ্ন (নিয়মিত দাম)" },
+  tcb: { en: "TCB Dhaka market survey", bn: "টিসিবি ঢাকা বাজারদর জরিপ" },
   crowd: { en: "Community reports", bn: "কমিউনিটির রিপোর্ট" },
 };
 

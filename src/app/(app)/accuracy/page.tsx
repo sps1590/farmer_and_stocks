@@ -119,6 +119,7 @@ export default async function AccuracyPage() {
                 <span className="block">
                   {t(lang, "last_update")}: {new Date(s.started_at).toLocaleString(lang === "bn" ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" })}
                 </span>
+                {s.message && <span className="block max-w-56 truncate text-[10px]" title={s.message}>{s.message}</span>}
               </span>
             </li>
           ))}

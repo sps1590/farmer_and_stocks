@@ -1,17 +1,41 @@
+import Link from "next/link";
 import { requireDevice } from "@/lib/device";
 import { UNIT_LABEL } from "@/lib/catalog";
-import { t } from "@/lib/i18n";
+import { fmtNum, t, type DictKey } from "@/lib/i18n";
 import { latestForecasts, outlookFrom, referencePrice } from "@/lib/queries";
 import { marketRows } from "@/lib/market";
+import { dailyBoard, productStats } from "@/lib/daily";
+import { refreshStatus } from "@/lib/refresh";
 import type { PriceOutlook } from "@/lib/recommend";
 import { FlagLegend } from "@/components/Flag";
 import { MarketList, type MarketItem } from "@/components/MarketList";
 import { TraderBoard, type BoardItem } from "@/components/TraderBoard";
+import { DailyPrices } from "@/components/DailyPrices";
+import { UpdatePricesButton } from "@/components/UpdatePricesButton";
 
-export default async function MarketPage() {
+// The "Update today's price" button runs its scrape in after(), which is
+// bounded by this segment's max duration.
+export const maxDuration = 300;
+
+const VIEWS = [
+  ["today", "tab_today_prices"],
+  ["outlook", "tab_outlook"],
+  ["stock", "stock_planner"],
+] as const;
+
+export default async function MarketPage({ searchParams }: PageProps<"/trader">) {
   const device = await requireDevice();
   const lang = device.lang;
-  const [rows, forecasts] = await Promise.all([marketRows(device.district), latestForecasts()]);
+  const sp = await searchParams;
+  const view = VIEWS.some(([v]) => v === sp.view) ? (sp.view as (typeof VIEWS)[number][0]) : "today";
+
+  const [status, board, stats, rows, forecasts] = await Promise.all([
+    refreshStatus(),
+    dailyBoard(),
+    productStats(),
+    marketRows(device.district),
+    latestForecasts(),
+  ]);
 
   const items: MarketItem[] = rows.map((r) => ({
     key: r.c.key,
@@ -27,7 +51,7 @@ export default async function MarketPage() {
     mine: device.commodities.includes(r.c.key),
   }));
 
-  const board: BoardItem[] = [];
+  const planner: BoardItem[] = [];
   for (const r of rows) {
     const outlooks: Record<number, PriceOutlook> = {};
     for (let m = 1; m <= 6; m++) {
@@ -35,7 +59,7 @@ export default async function MarketPage() {
       if (o) outlooks[m] = o;
     }
     if (!Object.keys(outlooks).length) continue;
-    board.push({
+    planner.push({
       key: r.c.key,
       name: lang === "bn" ? r.c.name_bn : r.c.name_en,
       icon: r.c.icon,
@@ -48,20 +72,47 @@ export default async function MarketPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-extrabold">📈 {t(lang, "market_title")}</h1>
-        <p className="text-sm text-muted">{t(lang, "market_hint")}</p>
-        <p className="mt-1 text-xs text-muted">ⓘ {t(lang, "no_discount_note")}</p>
+        <p className="text-xs text-muted">ⓘ {t(lang, "no_discount_note")}</p>
       </header>
-      <FlagLegend lang={lang} />
-      <MarketList items={items} />
-      {device.role !== "farmer" && (
-        <section>
-          <h2 className="section-title mb-2">📦 {t(lang, "stock_planner")}</h2>
-          <TraderBoard items={board} />
+
+      <UpdatePricesButton initial={status} />
+
+      <nav className="grid grid-cols-3 gap-1 rounded-2xl bg-surface-2 p-1" aria-label={t(lang, "market_title")}>
+        {VIEWS.map(([v, label]) => (
+          <Link
+            key={v}
+            href={v === "today" ? "/trader" : `/trader?view=${v}`}
+            aria-current={view === v ? "page" : undefined}
+            className={`rounded-xl px-2 py-2.5 text-center text-sm font-bold ${view === v ? "bg-surface text-primary shadow-sm" : "text-muted"}`}
+          >
+            {t(lang, label as DictKey)}
+          </Link>
+        ))}
+      </nav>
+
+      {view === "today" && (
+        <section className="space-y-2">
+          <DailyPrices lang={lang} board={board} mine={device.commodities} />
+          {stats.products > 0 && (
+            <p className="num text-center text-xs text-muted">
+              {t(lang, "products_tracked")}: {fmtNum(lang, stats.products)} · {fmtNum(lang, stats.days)} {t(lang, "days_count")}
+            </p>
+          )}
         </section>
       )}
+
+      {view === "outlook" && (
+        <section className="space-y-3">
+          <p className="text-sm text-muted">{t(lang, "market_hint")}</p>
+          <FlagLegend lang={lang} />
+          <MarketList items={items} />
+        </section>
+      )}
+
+      {view === "stock" && <TraderBoard items={planner} />}
     </div>
   );
 }

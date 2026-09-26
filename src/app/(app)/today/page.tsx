@@ -13,6 +13,14 @@ import { WeatherCheckin } from "@/components/WeatherCheckin";
 import { PushManager } from "@/components/PushManager";
 import { FlagPill } from "@/components/Flag";
 import { MyItems, type MyItem } from "@/components/MyItems";
+import { UpdatePricesButton } from "@/components/UpdatePricesButton";
+import { Change } from "@/components/DailyPrices";
+import { dailyBoard } from "@/lib/daily";
+import { refreshStatus } from "@/lib/refresh";
+import { COMMODITY_BY_KEY } from "@/lib/catalog";
+
+// The "Update today's price" button runs its scrape in after(), bounded by this.
+export const maxDuration = 300;
 
 const FLAG_RANK = { green: 0, orange: 1, red: 2 } as const;
 
@@ -26,7 +34,7 @@ export default async function HomePage() {
   const showGrow = device.role !== "trader";
   const showHot = device.role !== "farmer";
 
-  const [weather, reported, rows, plan] = await Promise.all([
+  const [weather, reported, rows, plan, board, status] = await Promise.all([
     sql`SELECT rain, heat, storm FROM weather_reports WHERE device_id = ${device.id} AND report_date = ${today} AND slot = ${slot}`.then(
       (r) => r as { rain: "none" | "light" | "heavy"; heat: number; storm: boolean }[],
     ),
@@ -35,7 +43,13 @@ export default async function HomePage() {
     ),
     marketRows(device.district),
     showGrow ? cropPlan(device.district) : Promise.resolve([]),
+    dailyBoard(),
+    refreshStatus(),
   ]);
+  const moves = [...board.values()]
+    .filter((d) => d.dayChange !== null && Math.abs(d.dayChange) >= 0.005 && COMMODITY_BY_KEY.has(d.commodity))
+    .sort((a, b) => Math.abs(b.dayChange!) - Math.abs(a.dayChange!))
+    .slice(0, 4);
 
   const hot = hotItems(rows, 3);
   const growTop = plan
@@ -152,6 +166,33 @@ export default async function HomePage() {
         <h2 className="section-title mb-1">☝️ {t(lang, "checkin_title")}</h2>
         <p className="mb-2 text-xs text-muted">{t(lang, "checkin_hint")}</p>
         <WeatherCheckin slot={slot} existing={weather[0] ?? null} />
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="section-title">🏷️ {t(lang, "tab_today_prices")}</h2>
+        <UpdatePricesButton initial={status} />
+        {moves.length > 0 && (
+          <div className="card p-3">
+            <p className="mb-2 text-xs font-semibold text-muted">{t(lang, "biggest_moves")} · {t(lang, "day_change")}</p>
+            <ul className="grid grid-cols-2 gap-2">
+              {moves.map((d) => {
+                const c = COMMODITY_BY_KEY.get(d.commodity)!;
+                return (
+                  <li key={d.commodity}>
+                    <Link href={`/market/${c.key}`} className="flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-2.5 py-2 text-sm">
+                      <span className="truncate font-semibold">
+                        <span aria-hidden>{c.icon}</span> {lang === "bn" ? c.name_bn : c.name_en}
+                      </span>
+                      <span className="shrink-0 text-xs">
+                        <Change value={d.dayChange} lang={lang} />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </section>
 
       <section>
