@@ -177,7 +177,11 @@ def forecast_series(months: list[str], values: list[float], horizons: list[int],
     last_idx = start + n - 1
     for h in horizons:
         pairs = residuals[h]
-        cal = np.array([abs(e) for o, e in pairs if o in split]) if holdout else np.array([abs(e) for _, e in pairs])
+        if not pairs:
+            # Series too short to have ever been tested this far ahead: no
+            # honest interval exists, so this horizon is simply not offered.
+            continue
+        cal =np.array([abs(e) for o, e in pairs if o in split]) if holdout else np.array([abs(e) for _, e in pairs])
         test = [(o, e) for o, e in pairs if o in holdout]
 
         # Honest out-of-sample metrics: interval width from calibration origins only,

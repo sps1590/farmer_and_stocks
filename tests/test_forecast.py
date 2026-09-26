@@ -55,3 +55,14 @@ def test_forecast_endpoint():
     r = client.post("/api/py/forecast", json=body)
     assert r.status_code == 200
     assert r.json()["results"]["x"]["ok"] is True
+
+
+def test_untestable_horizons_are_omitted_not_infinite():
+    # 23 months cannot be backtested 12 months ahead; that horizon must be
+    # dropped rather than returned with an infinite (non-JSON) interval.
+    out = forecast_series(_months(23), [50.0 + (i % 7) for i in range(23)], list(range(1, 13)))
+    assert out["ok"]
+    hs = [h["horizon"] for h in out["horizons"]]
+    assert 12 not in hs and 1 in hs
+    for h in out["horizons"]:
+        assert math.isfinite(h["lo"]) and math.isfinite(h["hi"])
