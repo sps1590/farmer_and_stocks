@@ -35,6 +35,9 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Not built yet / next
 
+- Web Push delivery not yet verified on a real phone/Chrome (service worker
+  registration is blocked in the embedded test browser).
+
 - Upazila-level location (districts only today).
 - Community prices are not yet used as a forecast series until ≥ 18 months exist.
 - Device trust scores (column exists, not yet updated from agreement with consensus).
@@ -45,5 +48,10 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-09-26 — Deployed to https://farmer-and-stocks.vercel.app (Vercel project
+  `farmer-and-stocks`, GitHub-connected: every push to main auto-deploys; Neon
+  resource `farmer-and-stocks-db`). Fixes found in production: TCB TLS chain
+  (bundled Sectigo DV R36 intermediate), Open-Meteo 503 retries, forecast
+  horizons extended to 12 months, untestable horizons omitted (was HTTP 500).
 - 2026-09-26 — Initial MVP: Next.js 16 + FastAPI + Neon, ingest/forecast/push
   crons, farmer/trader/accuracy dashboards, EN/BN, CI workflow.
