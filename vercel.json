@@ -1,0 +1,16 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 120,
+      "excludeFiles": "{.next/**,node_modules/**,src/**,public/**,tests/**,.pytest_cache/**}"
+    }
+  },
+  "crons": [
+    { "path": "/api/cron/notify/1", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/notify/2", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/ingest", "schedule": "0 10 * * *" },
+    { "path": "/api/cron/notify/3", "schedule": "0 12 * * *" },
+    { "path": "/api/cron/forecast", "schedule": "0 14 * * *" }
+  ]
+}
