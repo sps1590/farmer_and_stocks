@@ -5,7 +5,7 @@ import { placeLabel } from "@/lib/admin-geo";
 import { fmtNum, fmtPct, monthName, t, type DictKey } from "@/lib/i18n";
 import { currentPrices, latestForecasts, monthVsHistory } from "@/lib/queries";
 import { cropPlan, type CropPlanItem } from "@/lib/market";
-import { planWindow } from "@/lib/recommend";
+import { FLAG_ORDER, planWindow } from "@/lib/recommend";
 import { ForecastCard } from "@/components/ForecastCard";
 import { FlagLegend, FlagPill } from "@/components/Flag";
 
@@ -14,7 +14,6 @@ const WINDOWS = [
   ["soon", "plan_soon"],
   ["later", "plan_later"],
 ] as const;
-const FLAG_RANK = { green: 0, orange: 1, red: 2 } as const;
 
 export default async function GrowPage() {
   const device = await requireDevice();
@@ -28,7 +27,8 @@ export default async function GrowPage() {
   ]);
 
   const byWindow = (w: string) =>
-    plan.filter((p) => planWindow(p.monthsToPlant) === w).sort((a, b) => FLAG_RANK[a.flag] - FLAG_RANK[b.flag] || b.score - a.score);
+    // Profit, then loss, then stable; best score first within each group.
+    plan.filter((p) => planWindow(p.monthsToPlant) === w).sort((a, b) => FLAG_ORDER[a.flag] - FLAG_ORDER[b.flag] || b.score - a.score);
   const place = placeLabel(device, lang === "bn" ? district.name_bn : district.name_en, lang);
 
   return (

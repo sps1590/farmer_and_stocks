@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useI18n } from "./I18nProvider";
 import { FlagPill } from "./Flag";
 import { fmtPct, fmtTaka } from "@/lib/i18n";
-import type { Flag } from "@/lib/recommend";
+import { compareFlagged, type Flag } from "@/lib/recommend";
 
 export type MarketItem = {
   key: string;
@@ -21,15 +21,14 @@ export type MarketItem = {
   mine: boolean;
 };
 
-const FILTERS = ["all", "green", "orange", "red"] as const;
-const RANK: Record<string, number> = { green: 0, orange: 1, red: 2, none: 3 };
+const FILTERS = ["all", "green", "red", "orange"] as const;
 
 export function MarketList({ items }: { items: MarketItem[] }) {
   const { t, lang } = useI18n();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
   const shown = items
     .filter((i) => filter === "all" || i.flag === filter)
-    .sort((a, b) => RANK[a.flag ?? "none"] - RANK[b.flag ?? "none"] || (b.change ?? -9) - (a.change ?? -9));
+    .sort((a, b) => compareFlagged({ flag: a.flag, value: a.change }, { flag: b.flag, value: b.change }));
 
   const count = (f: (typeof FILTERS)[number]) => (f === "all" ? items.length : items.filter((i) => i.flag === f).length);
 

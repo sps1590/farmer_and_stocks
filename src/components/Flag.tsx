@@ -18,7 +18,7 @@ export function FlagPill({ flag, lang, compact = false }: { flag: Flag; lang: La
 export function FlagLegend({ lang }: { lang: Lang }) {
   return (
     <ul className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-muted">
-      {(["green", "orange", "red"] as const).map((f) => (
+      {(["green", "red", "orange"] as const).map((f) => (
         <li key={f} className="inline-flex items-center gap-1.5">
           <FlagPill flag={f} lang={lang} />
           {t(lang, HINT[f])}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { climateFit, computeMargin, cropFlag, marginFlag, planWindow, priceFlag, probAbove, suggestCrops, type Normal, type PriceOutlook } from "./recommend.ts";
+import { climateFit, compareFlagged, computeMargin, cropFlag, marginFlag, planWindow, priceFlag, probAbove, suggestCrops, type Normal, type PriceOutlook } from "./recommend.ts";
 import type { Crop } from "./catalog.ts";
 
 const wheat: Crop = { key: "wheat", commodity: "atta", name_en: "Wheat", name_bn: "গম", season: "rabi", plant: [11, 12], grow: 4, temp: [12, 25], water: "low" };
@@ -81,4 +81,19 @@ test("12-month crop plan windows", () => {
   assert.deepEqual([0, 2, 3, 5, 6, 11].map(planWindow), ["now", "now", "soon", "soon", "later", "later"]);
   // With a 12-month lookahead every crop is placed somewhere in the year.
   assert.equal(suggestCrops([wheat, jute], 10, normals, () => null, 11).length, 2);
+});
+
+test("profit first, then loss, then stable", () => {
+  const items = [
+    { id: "stable", flag: "orange" as const, value: 0.01 },
+    { id: "small-loss", flag: "red" as const, value: -0.04 },
+    { id: "big-gain", flag: "green" as const, value: 0.2 },
+    { id: "none", flag: null, value: null },
+    { id: "big-loss", flag: "red" as const, value: -0.3 },
+    { id: "small-gain", flag: "green" as const, value: 0.05 },
+  ];
+  assert.deepEqual(
+    items.sort(compareFlagged).map((i) => i.id),
+    ["big-gain", "small-gain", "big-loss", "small-loss", "stable", "none"],
+  );
 });

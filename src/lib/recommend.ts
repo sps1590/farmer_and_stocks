@@ -216,3 +216,18 @@ export function cropFlag(s: Pick<CropSuggestion, "climateFit" | "priceChange">):
 export function planWindow(monthsToPlant: number): "now" | "soon" | "later" {
   return monthsToPlant <= 2 ? "now" : monthsToPlant <= 5 ? "soon" : "later";
 }
+
+/** Display order: profit, then loss, then stable (items without a flag last). */
+export const FLAG_ORDER: Record<Flag | "none", number> = { green: 0, red: 1, orange: 2, none: 3 };
+
+/**
+ * Sort comparator for flagged items. Within profit the biggest gain comes
+ * first, within loss the biggest drop, within stable the highest change.
+ */
+export function compareFlagged(a: { flag: Flag | null; value: number | null }, b: { flag: Flag | null; value: number | null }): number {
+  const rank = FLAG_ORDER[a.flag ?? "none"] - FLAG_ORDER[b.flag ?? "none"];
+  if (rank) return rank;
+  const av = a.value ?? 0;
+  const bv = b.value ?? 0;
+  return a.flag === "red" ? av - bv : bv - av;
+}

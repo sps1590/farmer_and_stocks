@@ -2,6 +2,7 @@ import Link from "next/link";
 import { COMMODITIES, UNIT_LABEL } from "@/lib/catalog";
 import { fmtPct, fmtTaka, t, type Lang } from "@/lib/i18n";
 import type { DailyRow } from "@/lib/daily";
+import { compareFlagged, type Flag } from "@/lib/recommend";
 
 export function Change({ value, lang }: { value: number | null; lang: Lang }) {
   if (value === null) return <span className="text-muted">–</span>;
@@ -18,7 +19,11 @@ export function Change({ value, lang }: { value: number | null; lang: Lang }) {
 export function DailyPrices({ lang, board, mine }: { lang: Lang; board: Map<string, DailyRow>; mine: string[] }) {
   const rows = COMMODITIES.map((c) => ({ c, d: board.get(c.key) })).filter((r) => r.d?.price != null);
   if (!rows.length) return <p className="card p-4 text-sm text-muted">{t(lang, "no_daily_yet")}</p>;
-  rows.sort((a, b) => Number(mine.includes(b.c.key)) - Number(mine.includes(a.c.key)) || Math.abs(b.d!.dayChange ?? 0) - Math.abs(a.d!.dayChange ?? 0));
+  // Rising (profit) first, then falling (loss), then unchanged — by the latest
+  // move: yesterday's change when there is one, else the 7-day change.
+  const move = (d: DailyRow) => (d.dayChange !== null && Math.abs(d.dayChange) >= 0.005 ? d.dayChange : d.weekChange);
+  const dir = (v: number | null): Flag | null => (v === null ? null : v >= 0.005 ? "green" : v <= -0.005 ? "red" : "orange");
+  rows.sort((a, b) => compareFlagged({ flag: dir(move(a.d!)), value: move(a.d!) }, { flag: dir(move(b.d!)), value: move(b.d!) }));
 
   return (
     <div className="card overflow-hidden">

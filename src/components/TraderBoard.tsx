@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { computeMargin, marginFlag, type PriceOutlook } from "@/lib/recommend";
+import { compareFlagged, computeMargin, marginFlag, type PriceOutlook } from "@/lib/recommend";
 import { FlagPill } from "./Flag";
 import { fmtNum, fmtPct, fmtTaka } from "@/lib/i18n";
 import { useI18n } from "./I18nProvider";
@@ -52,7 +52,8 @@ export function TraderBoard({ items }: { items: BoardItem[] }) {
           return { it, buy, m: computeMargin({ buyPrice: buy, holdMonths: hold, storagePctPerMonth: storage, lossPct: loss, outlook: o }) };
         })
         .filter((x): x is NonNullable<typeof x> => x !== null)
-        .sort((a, b) => b.m.marginPct - a.m.marginPct),
+        // Profit, then loss, then stable.
+        .sort((a, b) => compareFlagged({ flag: marginFlag(a.m), value: a.m.marginPct }, { flag: marginFlag(b.m), value: b.m.marginPct })),
     [items, hold, storage, loss, buyAdj],
   );
 
