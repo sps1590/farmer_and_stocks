@@ -1,5 +1,7 @@
 # Krishi Bazar AI (কৃষি বাজার)
 
+> For predict the corect crops to grow and the correct things to store for business
+
 AI-assisted weather, crop-price and stock forecasting for Bangladesh farmers
 and commodity traders. Mobile-first PWA, Bangla + English, **tap-only input**
 (no typing anywhere).
