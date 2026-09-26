@@ -68,7 +68,7 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
         <legend className="mb-2 font-bold">{t(slot === 3 ? "q_rain_evening" : "q_rain")}</legend>
         <div className="grid grid-cols-3 gap-2">
           {RAIN.map((o) => (
-            <button key={o.v} type="button" className="tap flex-col" aria-pressed={rain === o.v} onClick={() => setRain(o.v)}>
+            <button key={o.v} type="button" className="tap flex-col" aria-label={t(o.key)} aria-pressed={rain === o.v} onClick={() => setRain(o.v)}>
               <span aria-hidden className="text-2xl">{o.icon}</span>
               <span className="text-sm">{t(o.key)}</span>
             </button>
@@ -81,7 +81,7 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
           <legend className="mb-2 font-bold">{t("q_heat")}</legend>
           <div className="grid grid-cols-5 gap-1.5">
             {HEAT.map((o) => (
-              <button key={o.v} type="button" className="tap flex-col px-1" aria-pressed={heat === o.v} onClick={() => setHeat(o.v)}>
+              <button key={o.v} type="button" className="tap flex-col px-1" aria-label={t(o.key)} aria-pressed={heat === o.v} onClick={() => setHeat(o.v)}>
                 <span aria-hidden className="text-2xl">{o.icon}</span>
                 <span className="text-[11px] leading-tight">{t(o.key)}</span>
               </button>

@@ -72,7 +72,7 @@ export async function runForecasts(): Promise<{ rows: number; message?: string }
 
   const out = await callPy<{ results: Record<string, PyResult> }>("/api/py/forecast", {
     method: "POST",
-    body: { series, horizons: [1, 2, 3, 4, 5, 6, 7, 8, 9], level: 0.95 },
+    body: { series, horizons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], level: 0.95 },
     timeoutMs: 120_000,
   });
 
