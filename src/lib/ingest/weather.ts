@@ -18,10 +18,17 @@ type DailyBlock = {
   };
 };
 
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(60_000) });
-  if (!res.ok) throw new Error(`${url.split("?")[0]} -> HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  return (await res.json()) as T;
+/** GET JSON, retrying transient overload/rate-limit errors (Open-Meteo returns 503/429 under load). */
+async function getJson<T>(url: string, attempts = 4): Promise<T> {
+  let lastError = "";
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 2000 * 2 ** (i - 1))); // 2s, 4s, 8s
+    const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(60_000) });
+    if (res.ok) return (await res.json()) as T;
+    lastError = `${url.split("?")[0]} -> HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`;
+    if (res.status !== 429 && res.status < 500) break;
+  }
+  throw new Error(lastError);
 }
 
 export async function ingestWeatherForecast(): Promise<{ rows: number }> {

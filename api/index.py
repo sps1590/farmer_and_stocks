@@ -13,9 +13,11 @@ import io
 import math
 import os
 import re
+import ssl
 import urllib.request
 from datetime import date, datetime
 
+import certifi
 import numpy as np
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -262,9 +264,24 @@ TCB_LIST_URL = "https://tcb.gov.bd/pages/daily-rmps"
 BN_DIGITS = str.maketrans("০১২৩৪৫৬৭৮৯", "0123456789")
 
 
+def _ssl_context() -> ssl.SSLContext:
+    """Verified TLS context: certifi roots plus intermediates that some Bangladeshi
+    government servers fail to send (tcb.gov.bd omits Sectigo DV R36). Browsers and
+    Windows fetch missing intermediates automatically; Linux/OpenSSL does not."""
+    ctx = ssl.create_default_context(cafile=certifi.where())
+    certs_dir = os.path.join(os.path.dirname(__file__), "certs")
+    for name in sorted(os.listdir(certs_dir)) if os.path.isdir(certs_dir) else []:
+        if name.endswith(".pem"):
+            ctx.load_verify_locations(os.path.join(certs_dir, name))
+    return ctx
+
+
+_SSL = _ssl_context()
+
+
 def _fetch(url: str, timeout: int = 40) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 - fixed https hosts
+    with urllib.request.urlopen(req, timeout=timeout, context=_SSL) as r:  # noqa: S310 - fixed https hosts
         return r.read()
 
 
