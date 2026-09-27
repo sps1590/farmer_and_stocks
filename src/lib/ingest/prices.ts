@@ -236,3 +236,11 @@ export async function ingestTcbArchive(budgetMs = 230_000): Promise<{ rows: numb
     message: `${sheets} sheets${page === -1 ? ", archive complete" : `, next page ${page}`}${errors.length ? `; ${errors.join("; ").slice(0, 300)}` : ""}`,
   };
 }
+
+export async function setTcbArchivePage(page: number) {
+  const sql = await getDb();
+  await sql`
+    INSERT INTO ingest_state (key, value, updated_at) VALUES (${ARCHIVE_KEY}, ${String(page)}, now())
+    ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+  `;
+}
