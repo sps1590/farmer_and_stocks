@@ -166,3 +166,11 @@ export async function startOver(): Promise<void> {
   (await cookies()).delete("fs_device");
   redirect("/welcome");
 }
+
+/** Colour theme for this phone (dark is the default look; light suits bright sunlight). */
+export async function setTheme(value: string): Promise<void> {
+  const v = z.enum(["dark", "light", "system"]).safeParse(value);
+  if (!v.success) return;
+  (await cookies()).set("fs_theme", v.data, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+  revalidatePath("/", "layout");
+}

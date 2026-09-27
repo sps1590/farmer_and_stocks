@@ -129,3 +129,17 @@ export async function productStats() {
   `) as { products: number; days: number; since: string | null }[];
   return r[0];
 }
+
+/** Daily mean price per commodity (across sources) for sparklines, oldest first. */
+export async function dailySeries(days = 30): Promise<Map<string, number[]>> {
+  const sql = await getDb();
+  const rows = (await sql`
+    SELECT commodity, obs_date::text AS date, AVG(price)::float AS price
+    FROM ext_prices
+    WHERE source IN ('chaldal', 'shwapno', 'tcb') AND obs_date >= (${bdToday()}::date - ${days}::int)
+    GROUP BY commodity, obs_date ORDER BY commodity, obs_date
+  `) as { commodity: string; date: string; price: number }[];
+  const out = new Map<string, number[]>();
+  for (const r of rows) out.set(r.commodity, [...(out.get(r.commodity) ?? []), r.price]);
+  return out;
+}

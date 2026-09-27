@@ -35,7 +35,9 @@ export default async function GrowPage() {
     <div className="space-y-6">
       <header>
         <p className="text-sm text-muted">📍 {place}</p>
-        <h1 className="text-2xl font-extrabold">🌱 {t(lang, "grow_title")}</h1>
+        <h1 className="text-3xl font-bold">
+          <span className="text-gradient">{t(lang, "grow_title")}</span>
+        </h1>
         <p className="text-sm text-muted">{t(lang, "grow_hint")}</p>
       </header>
 

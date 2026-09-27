@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireDevice } from "@/lib/device";
 import { getDb } from "@/lib/db";
-import { fmtPct, fmtTaka, monthName, t } from "@/lib/i18n";
+import { fmtNum, fmtPct, fmtTaka, monthName, t } from "@/lib/i18n";
 import { UNIT_LABEL } from "@/lib/catalog";
 import { DISTRICT_BY_KEY } from "@/lib/geo";
 import { placeLabel } from "@/lib/admin-geo";
@@ -15,14 +15,16 @@ import { FlagPill } from "@/components/Flag";
 import { MyItems, type MyItem } from "@/components/MyItems";
 import { UpdatePricesButton } from "@/components/UpdatePricesButton";
 import { Change } from "@/components/DailyPrices";
-import { dailyBoard } from "@/lib/daily";
+import { dailyBoard, dailySeries, productStats } from "@/lib/daily";
+import { Sparkline } from "@/components/Sparkline";
+import { historySpan } from "@/lib/queries";
 import { refreshStatus } from "@/lib/refresh";
 import { COMMODITY_BY_KEY } from "@/lib/catalog";
 
 // The "Update today's price" button runs its scrape in after(), bounded by this.
 export const maxDuration = 300;
 
-const FLAG_RANK = { green: 0, orange: 1, red: 2 } as const;
+const FLAG_RANK = { green: 0, orange: 1, red: 2 } as const; // best crops to plant first
 
 export default async function HomePage() {
   const device = await requireDevice();
@@ -34,7 +36,7 @@ export default async function HomePage() {
   const showGrow = device.role !== "trader";
   const showHot = device.role !== "farmer";
 
-  const [weather, reported, rows, plan, board, status] = await Promise.all([
+  const [weather, reported, rows, plan, board, status, spark, stats, span] = await Promise.all([
     sql`SELECT rain, heat, storm FROM weather_reports WHERE device_id = ${device.id} AND report_date = ${today} AND slot = ${slot}`.then(
       (r) => r as { rain: "none" | "light" | "heavy"; heat: number; storm: boolean }[],
     ),
@@ -45,6 +47,9 @@ export default async function HomePage() {
     showGrow ? cropPlan(device.district) : Promise.resolve([]),
     dailyBoard(),
     refreshStatus(),
+    dailySeries(30),
+    productStats(),
+    historySpan(),
   ]);
   const moves = [...board.values()]
     .filter((d) => d.dayChange !== null && Math.abs(d.dayChange) >= 0.005 && COMMODITY_BY_KEY.has(d.commodity))
@@ -80,9 +85,11 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm text-muted">{t(lang, greeting)} 👋</p>
-        <h1 className="text-2xl font-extrabold">{t(lang, "app_name")}</h1>
+      <header className="rise">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Krishi Bazar · AI</p>
+        <h1 className="text-3xl font-bold leading-tight">
+          <span className="text-gradient">{t(lang, greeting)}</span>
+        </h1>
       </header>
 
       <WeatherHero
@@ -92,6 +99,19 @@ export default async function HomePage() {
         lon={device.lon}
         placeLabel={placeLabel(device, lang === "bn" ? district.name_bn : district.name_en, lang)}
       />
+
+      <section className="grid grid-cols-3 gap-2" aria-label="summary">
+        {[
+          [fmtNum(lang, device.commodities.length), t(lang, "my_items")],
+          [fmtNum(lang, stats.products), t(lang, "products_tracked")],
+          [span.years !== null ? `${fmtNum(lang, span.years, 1)}` : "–", t(lang, "years_history")],
+        ].map(([v, k]) => (
+          <div key={k} className="card rise p-3">
+            <p className="big-num text-2xl font-bold">{v}</p>
+            <p className="text-[11px] leading-tight text-muted">{k}</p>
+          </div>
+        ))}
+      </section>
 
       {showGrow && (
         <section>
@@ -147,6 +167,11 @@ export default async function HomePage() {
                       ▲ {fmtPct(lang, r.change ?? 0, true)}
                     </p>
                     {r.price !== null && <p className="num text-xs text-muted">{fmtTaka(lang, r.price)}</p>}
+                    {spark.get(r.c.key) && (
+                      <span className="mt-1 block">
+                        <Sparkline values={spark.get(r.c.key)!} width={80} />
+                      </span>
+                    )}
                     {r.flag && (
                       <span className="mt-1 block">
                         <FlagPill flag={r.flag} lang={lang} />

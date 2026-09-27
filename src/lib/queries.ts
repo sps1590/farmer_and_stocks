@@ -256,3 +256,11 @@ export async function historyCoverage() {
   `) as { districts: number; since: string | null; days: number }[];
   return r[0];
 }
+
+/** How far back stored price history reaches (TCB archive / WFP), in years. */
+export async function historySpan(): Promise<{ since: string | null; years: number | null }> {
+  const sql = await getDb();
+  const r = (await sql`SELECT MIN(obs_date)::text AS since FROM ext_prices WHERE source = 'tcb'`) as { since: string | null }[];
+  const since = r[0]?.since ?? null;
+  return { since, years: since ? (Date.parse(bdToday()) - Date.parse(since)) / (365.25 * 86400_000) : null };
+}

@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import { Inter, Noto_Sans_Bengali, Space_Grotesk } from "next/font/google";
+import { cookies } from "next/headers";
 import { getLang } from "@/lib/device";
 import { isDbConfigured } from "@/lib/db";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const bengali = Noto_Sans_Bengali({ variable: "--font-bengali", subsets: ["bengali"], weight: ["400", "600", "700"] });
+const display = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Krishi Bazar AI — কৃষি বাজার",
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1b6e4a",
+  themeColor: "#060a13",
   width: "device-width",
   initialScale: 1,
 };
@@ -23,8 +25,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const configured = isDbConfigured();
   const lang = configured ? await getLang() : "bn";
+  const pref = (await cookies()).get("fs_theme")?.value;
+  const theme = pref === "light" || pref === "system" ? pref : "dark";
   return (
-    <html lang={lang} className={`${inter.variable} ${bengali.variable} h-full antialiased`}>
+    <html lang={lang} data-theme={theme} className={`${inter.variable} ${bengali.variable} ${display.variable} h-full antialiased`}>
       <body className="min-h-full">
         {configured ? (
           children

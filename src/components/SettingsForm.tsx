@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateSetting } from "@/lib/actions/device";
+import { setTheme, updateSetting } from "@/lib/actions/device";
 import { useI18n } from "./I18nProvider";
 import { LocationPicker, type LocationValue } from "./LocationPicker";
 import { GpsButton } from "./GpsButton";
@@ -18,6 +18,7 @@ type Props = {
     union: number | null;
     commodities: string[];
     pushes: number;
+    theme: "dark" | "light" | "system";
     lat: number | null;
     lon: number | null;
     place: string | null;
@@ -119,6 +120,30 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
       </section>
 
       <section className="card grid gap-4 p-4">
+        <div>
+          <h2 className="section-title mb-2">
+            ◐ {t("theme")}
+            {savedMark("theme")}
+          </h2>
+          <div className="segmented grid-cols-3">
+            {(["dark", "light", "system"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className="min-h-11 rounded-xl text-sm font-bold"
+                aria-pressed={device.theme === v}
+                onClick={() =>
+                  start(async () => {
+                    await setTheme(v);
+                    setSavedField("theme");
+                  })
+                }
+              >
+                {t(v === "dark" ? "theme_dark" : v === "light" ? "theme_light" : "theme_system")}
+              </button>
+            ))}
+          </div>
+        </div>
         <div>
           <h2 className="section-title mb-2">
             🌐 {t("language")}

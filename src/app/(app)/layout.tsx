@@ -7,7 +7,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const device = await requireDevice();
   return (
     <I18nProvider lang={device.lang} d={dict(device.lang)}>
-      <main className="mx-auto max-w-2xl px-4 pb-28 pt-5">{children}</main>
+      <main className="mx-auto max-w-2xl px-4 pb-32 pt-6">{children}</main>
       <BottomNav role={device.role} />
     </I18nProvider>
   );

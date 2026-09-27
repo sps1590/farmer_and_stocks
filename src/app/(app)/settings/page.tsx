@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { requireDevice } from "@/lib/device";
 import { COMMODITIES } from "@/lib/catalog";
 import { DISTRICT_BY_KEY, DISTRICTS, DIVISIONS } from "@/lib/geo";
@@ -11,9 +12,21 @@ export default async function MorePage() {
   const device = await requireDevice();
   const lang = device.lang;
   const history = await historyCoverage();
+  const pref = (await cookies()).get("fs_theme")?.value;
+  const theme = pref === "light" || pref === "system" ? pref : "dark";
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-extrabold">⚙️ {t(lang, "more_title")}</h1>
+      <header className="rise">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Krishi Bazar · AI</p>
+        <h1 className="text-3xl font-bold">
+          <span className="text-gradient">{t(lang, "more_title")}</span>
+        </h1>
+      </header>
+
+      <section className="card-glow p-4">
+        <h2 className="section-title">⟳ {t(lang, "auto_collect")}</h2>
+        <p className="mt-1 text-sm text-muted">{t(lang, "auto_collect_hint")}</p>
+      </section>
 
       <Link href="/accuracy" className="card row-tap rounded-2xl">
         <span className="text-2xl" aria-hidden>
@@ -33,6 +46,7 @@ export default async function MorePage() {
           union: device.union_id,
           commodities: device.commodities,
           pushes: device.pushes_per_day,
+          theme,
           lat: device.lat,
           lon: device.lon,
           place: device.place_name,

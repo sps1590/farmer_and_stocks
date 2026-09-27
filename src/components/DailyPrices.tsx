@@ -3,6 +3,7 @@ import { COMMODITIES, UNIT_LABEL } from "@/lib/catalog";
 import { fmtPct, fmtTaka, t, type Lang } from "@/lib/i18n";
 import type { DailyRow } from "@/lib/daily";
 import { compareFlagged, type Flag } from "@/lib/recommend";
+import { Sparkline } from "./Sparkline";
 
 export function Change({ value, lang }: { value: number | null; lang: Lang }) {
   if (value === null) return <span className="text-muted">–</span>;
@@ -16,7 +17,7 @@ export function Change({ value, lang }: { value: number | null; lang: Lang }) {
 }
 
 /** Today's price per commodity with day-on-day and week-on-week change. */
-export function DailyPrices({ lang, board, mine }: { lang: Lang; board: Map<string, DailyRow>; mine: string[] }) {
+export function DailyPrices({ lang, board, mine, spark }: { lang: Lang; board: Map<string, DailyRow>; mine: string[]; spark?: Map<string, number[]> }) {
   const rows = COMMODITIES.map((c) => ({ c, d: board.get(c.key) })).filter((r) => r.d?.price != null);
   if (!rows.length) return <p className="card p-4 text-sm text-muted">{t(lang, "no_daily_yet")}</p>;
   // Rising (profit) first, then falling (loss), then unchanged — by the latest
@@ -40,6 +41,11 @@ export function DailyPrices({ lang, board, mine }: { lang: Lang; board: Map<stri
               <span className="min-w-0 font-semibold leading-tight">
                 <span aria-hidden>{c.icon}</span> {lang === "bn" ? c.name_bn : c.name_en}
                 {mine.includes(c.key) && <span className="text-xs text-primary"> ★</span>}
+                {spark?.get(c.key) && (
+                  <span className="mt-1 block">
+                    <Sparkline values={spark.get(c.key)!} />
+                  </span>
+                )}
               </span>
               <span className="num text-right font-bold">
                 {fmtTaka(lang, d!.price!)}

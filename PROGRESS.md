@@ -13,6 +13,21 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v4, 2026-09-27)
+
+- 5-year price history: resumable backfill of TCB's public archive
+  (~1,400 daily sheets from May 2021; year-ago columns reach 2020) via
+  `/api/cron/backfill` (`ingest_state` holds the next page). Every TCB item is
+  also stored per day in `retail_product_prices`.
+- Automatic daily collection: prices twice a day (`/api/cron/retail` at
+  04:30 and 11:00 UTC), TCB/WFP/weather daily, weather history and archive
+  backfill daily until complete. Forecasts pick the longest recent series.
+- "Aurora" redesign: dark-first glass UI (Space Grotesk display numerals,
+  gradient accents, floating nav pill, segmented tabs, sparklines, KPI
+  tiles) with Light/Auto themes (`fs_theme` cookie, `data-theme` on <html>).
+- Not available: FAO FPMA has no documented public API; the Internet Archive
+  (for old Chaldal/Shwapno pages) was offline when tried.
+
 ## What's built (v3, 2026-09-27)
 
 - "Update today's price" button (Home + Market): one shared background
@@ -88,6 +103,8 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-09-27 — v4: TCB 5-year archive backfill, twice-daily automatic price
+  collection, longest-series forecasting, "Aurora" futuristic redesign + themes.
 - 2026-09-27 — v3: "Update today's price" button, per-product daily price
   table and day/week change views; TCB relabelled as "market survey".
 - 2026-09-26 — v2: deeper location + GPS, 5-year weather history, Chaldal/Shwapno
