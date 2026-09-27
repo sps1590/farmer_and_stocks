@@ -352,7 +352,8 @@ def tcb(limit: int = 1, page: int = 1, x_internal_secret: str | None = Header(de
     limit = min(max(limit, 1), 10)
     page = min(max(page, 1), 200)
     html = _fetch(f"{TCB_LIST_URL}?page={page}").decode("utf-8", errors="replace")
-    links = tcb_xlsx_links(html)[:limit]
+    all_links = tcb_xlsx_links(html)
+    links = all_links[:limit]
     sheets, errors = [], []
     for link in links:
         try:
@@ -362,4 +363,6 @@ def tcb(limit: int = 1, page: int = 1, x_internal_secret: str | None = Header(de
                 sheets.append(parsed)
         except Exception as exc:
             errors.append(f"{link}: {exc}")
-    return {"fetched_at": date.today().isoformat(), "sheets": sheets, "errors": errors}
+    # "links" lets callers tell "past the last page" (0 files) from a page whose
+    # files are one-off reports in another layout (files, but no daily sheets).
+    return {"fetched_at": date.today().isoformat(), "links": len(all_links), "sheets": sheets, "errors": errors}

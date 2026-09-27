@@ -205,12 +205,13 @@ export async function ingestTcbArchive(budgetMs = 230_000): Promise<{ rows: numb
   const errors: string[] = [];
   while (Date.now() - started < budgetMs) {
     try {
-      const r = await callPy<{ sheets: TcbSheet[]; errors: string[] }>(`/api/py/tcb?page=${page}&limit=10`, { timeoutMs: 110_000 });
+      const r = await callPy<{ sheets: TcbSheet[]; errors: string[]; links?: number }>(`/api/py/tcb?page=${page}&limit=10`, { timeoutMs: 110_000 });
       errors.push(...r.errors.slice(0, 2));
-      if (!r.sheets.length && !r.errors.length) {
+      if (r.links === 0) {
         page = -1; // past the last page
         break;
       }
+      // A page can hold only one-off reports in another layout: skip it.
       rows += await storeTcbSheets(r.sheets);
       await storeTcbProducts(r.sheets);
       sheets += r.sheets.length;
