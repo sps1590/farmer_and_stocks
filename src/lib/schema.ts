@@ -170,6 +170,13 @@ export const SCHEMA_STATEMENTS: string[] = [
     summary JSONB
   )`,
 
+  // Progress markers for long one-time backfills (e.g. next TCB archive page).
+  `CREATE TABLE IF NOT EXISTS ingest_state (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+
   // Short-lived cache of Open-Meteo "current conditions", keyed by a ~5 km grid cell.
   `CREATE TABLE IF NOT EXISTS weather_now (
     key TEXT PRIMARY KEY,

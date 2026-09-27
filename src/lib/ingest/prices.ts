@@ -144,6 +144,7 @@ export async function ingestTcb(): Promise<{ rows: number; message?: string }> {
     try {
       const r = await callPy<{ sheets: TcbSheet[]; errors: string[] }>(`/api/py/tcb?page=${page}&limit=${page === 1 ? 3 : 1}`, { timeoutMs: 90_000 });
       rows += await storeTcbSheets(r.sheets);
+      await storeTcbProducts(r.sheets);
       errors.push(...r.errors);
     } catch (err) {
       errors.push(`page ${page}: ${err instanceof Error ? err.message : String(err)}`);
@@ -151,4 +152,86 @@ export async function ingestTcb(): Promise<{ rows: number; message?: string }> {
   }
   if (rows === 0 && errors.length) throw new Error(errors.join("; ").slice(0, 900));
   return { rows, message: errors.length ? `partial: ${errors.join("; ").slice(0, 600)}` : undefined };
+}
+
+/** Every TCB item (not just tracked commodities) as a daily product price row. */
+async function storeTcbProducts(sheets: TcbSheet[]): Promise<number> {
+  const key: string[] = [], date: string[] = [], name: string[] = [], unit: string[] = [], price: number[] = [];
+  const seen = new Set<string>();
+  for (const sheet of sheets) {
+    for (const row of sheet.rows) {
+      // Only the sheet's own date: the week/month/year-ago columns belong to other days' sheets.
+      const p = row.points.find((x) => x.date === sheet.date);
+      if (!p) continue;
+      const k = `${row.name} | ${row.unit}`.normalize("NFC");
+      if (seen.has(`${k}|${p.date}`)) continue;
+      seen.add(`${k}|${p.date}`);
+      key.push(k);
+      date.push(p.date);
+      name.push(row.name);
+      unit.push(row.unit);
+      price.push(Math.round(((p.min + p.max) / 2) * 100) / 100);
+    }
+  }
+  if (!key.length) return 0;
+  const sql = await getDb();
+  await sql`
+    INSERT INTO retail_product_prices (source, product_key, obs_date, name, commodity, pack_size, regular_price, url)
+    SELECT 'tcb', k, d, n, NULL, u, p, 'https://tcb.gov.bd/pages/daily-rmps'
+    FROM unnest(${key}::text[], ${date}::date[], ${name}::text[], ${unit}::text[], ${price}::numeric[]) AS t(k, d, n, u, p)
+    ON CONFLICT (source, product_key, obs_date) DO NOTHING
+  `;
+  return key.length;
+}
+
+// ---------------------------------------------------------------------------
+// One-time backfill of TCB's whole public archive (~1,400 daily sheets since
+// May 2021, each also carrying the price one year earlier, so the series
+// reaches back to 2020). Resumable: the next listing page is kept in
+// ingest_state and each run works for a bounded time.
+// ---------------------------------------------------------------------------
+
+const ARCHIVE_KEY = "tcb_archive_next_page";
+
+export async function ingestTcbArchive(budgetMs = 230_000): Promise<{ rows: number; message?: string }> {
+  const sql = await getDb();
+  const state = (await sql`SELECT value FROM ingest_state WHERE key = ${ARCHIVE_KEY}`) as { value: string }[];
+  let page = Number(state[0]?.value ?? 1);
+  if (page < 0) return { rows: 0, message: "archive complete" };
+
+  const started = Date.now();
+  let rows = 0;
+  let sheets = 0;
+  const errors: string[] = [];
+  while (Date.now() - started < budgetMs) {
+    try {
+      const r = await callPy<{ sheets: TcbSheet[]; errors: string[] }>(`/api/py/tcb?page=${page}&limit=10`, { timeoutMs: 110_000 });
+      errors.push(...r.errors.slice(0, 2));
+      if (!r.sheets.length && !r.errors.length) {
+        page = -1; // past the last page
+        break;
+      }
+      rows += await storeTcbSheets(r.sheets);
+      await storeTcbProducts(r.sheets);
+      sheets += r.sheets.length;
+      page += 1;
+      await sql`
+        INSERT INTO ingest_state (key, value, updated_at) VALUES (${ARCHIVE_KEY}, ${String(page)}, now())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()
+      `;
+    } catch (err) {
+      errors.push(`page ${page}: ${err instanceof Error ? err.message : String(err)}`);
+      break; // retry this page next run
+    }
+  }
+  if (page === -1) {
+    await sql`
+      INSERT INTO ingest_state (key, value, updated_at) VALUES (${ARCHIVE_KEY}, '-1', now())
+      ON CONFLICT (key) DO UPDATE SET value = '-1', updated_at = now()
+    `;
+  }
+  return {
+    rows,
+    message: `${sheets} sheets${page === -1 ? ", archive complete" : `, next page ${page}`}${errors.length ? `; ${errors.join("; ").slice(0, 300)}` : ""}`,
+  };
 }

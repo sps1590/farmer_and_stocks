@@ -7,10 +7,10 @@ import { bdToday, monthsBetween } from "./time";
 // Builds one monthly series per commodity and asks the Python service for
 // forecasts with split-conformal 95% intervals.
 //
-// Series choice: WFP national median (long multi-market history) when it has
-// >= 24 months and is recent; then the online grocers' daily regular prices
-// (Chaldal + Shwapno) once >= 18 months exist; then the TCB Dhaka market
-// survey; then crowd-reported medians.
+// Series choice: among WFP national medians, the TCB Dhaka market survey
+// (5-year archive), the online grocers' regular prices and community
+// reports, the longest series that is recent (<= 6 months old) and has
+// >= 18 months.
 
 type PyHorizon = {
   horizon: number;
@@ -48,15 +48,16 @@ async function monthlySeries(source: "wfp" | "retail" | "tcb" | "crowd", commodi
 }
 
 export async function pickSeries(commodity: string): Promise<{ source: string; rows: SeriesRow[] } | null> {
+  // Use the longest recent series: more history = more backtest months to
+  // validate the 95% range, and >= 30 months unlocks the seasonal models.
   const nowYm = bdToday().slice(0, 7);
-  // Online-grocer history is preferred over the TCB survey once it is long enough.
-  for (const source of ["wfp", "retail", "tcb", "crowd"] as const) {
+  let best: { source: string; rows: SeriesRow[] } | null = null;
+  for (const source of ["wfp", "tcb", "retail", "crowd"] as const) {
     const rows = await monthlySeries(source, commodity);
     const fresh = rows.length > 0 && monthsBetween(rows[rows.length - 1].m, nowYm) <= 6;
-    const enough = rows.length >= (source === "wfp" ? 24 : 18);
-    if (fresh && enough) return { source, rows };
+    if (fresh && rows.length >= 18 && (!best || rows.length > best.rows.length)) best = { source, rows };
   }
-  return null;
+  return best;
 }
 
 export async function runForecasts(): Promise<{ rows: number; message?: string }> {
