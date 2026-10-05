@@ -257,7 +257,7 @@ h2,
   border: 1px solid transparent;
   background:
     linear-gradient(var(--surface-solid), var(--surface-solid)) padding-box,
-    linear-gradient(135deg, var(--primary), var(--primary-2), var(--accent)) border-box;
+    linear-gradient(90deg, var(--primary), var(--primary-2), var(--accent), var(--primary-2), var(--primary)) border-box;
   border-radius: var(--card-radius);
   box-shadow: var(--glow);
 }
@@ -505,5 +505,197 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* =====================================================================
+   Motion. Transform/opacity only; every animation is removed under
+   prefers-reduced-motion (see the block at the end).
+   ===================================================================== */
+
+/* Aurora slowly drifts behind the content */
+@keyframes aurora-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3vw, 2vh, 0) scale(1.08); }
+  100% { transform: translate3d(-3vw, -1vh, 0) scale(1.03); }
+}
+body::before {
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Page entrance: each screen fades up, its sections follow one by one */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.page-enter > * > * {
+  animation: page-in var(--dur-slow) var(--ease-out) both;
+}
+.page-enter > * > *:nth-child(2) { animation-delay: 50ms; }
+.page-enter > * > *:nth-child(3) { animation-delay: 100ms; }
+.page-enter > * > *:nth-child(4) { animation-delay: 150ms; }
+.page-enter > * > *:nth-child(5) { animation-delay: 200ms; }
+.page-enter > * > *:nth-child(6) { animation-delay: 250ms; }
+.page-enter > * > *:nth-child(n + 7) { animation-delay: 300ms; }
+
+/* Lists: rows cascade in */
+.stagger > * {
+  animation: page-in var(--dur-slow) var(--ease-out) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 40ms; }
+.stagger > *:nth-child(2) { animation-delay: 80ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 160ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 240ms; }
+.stagger > *:nth-child(n + 7) { animation-delay: 280ms; }
+
+/* Content further down fades in as it scrolls into view (where supported) */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: page-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+/* Cards that are links lift slightly; everything tappable presses in */
+a.card,
+a > .card,
+.card-lift {
+  transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+@media (hover: hover) {
+  a.card:hover,
+  .card-lift:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+  }
+}
+a.card:active,
+.card-lift:active,
+.row-tap:active {
+  transform: scale(0.985);
+}
+
+/* Featured card: the gradient border slowly flows */
+@keyframes border-flow {
+  to { background-position: 0 0, 200% 0; }
+}
+.card-glow {
+  background-size: auto, 200% 100%;
+  animation: border-flow 8s linear infinite;
+}
+
+/* Primary button: a soft sheen passes across */
+@keyframes sheen {
+  0%, 60% { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(220%) skewX(-18deg); }
+}
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: sheen 4.5s var(--ease-out) infinite;
+  pointer-events: none;
+}
+.btn-primary:disabled::after {
+  display: none;
+}
+
+/* Weather icon floats gently */
+@keyframes float {
+  from { transform: translateY(0); }
+  to { transform: translateY(-6px); }
+}
+.float {
+  animation: float 3.2s ease-in-out infinite alternate;
+}
+
+/* Lines draw themselves (sparklines, charts, logo) — paths use pathLength="1" */
+@keyframes draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 900ms var(--ease-out) 150ms forwards;
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-late {
+  opacity: 0;
+  animation: fade-in 400ms var(--ease-out) 800ms forwards;
+}
+
+/* Small "pop" for confirmations and the active nav icon */
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.pop {
+  animation: pop 380ms var(--ease-out) both;
+}
+@keyframes grow-leaf {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.leaf {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: grow-leaf 500ms var(--ease-out) 900ms both;
+}
+.leaf-2 {
+  transform-origin: 100% 100%;
+  animation-delay: 1050ms;
+}
+
+/* Selected options and meters ease into place */
+.tap[aria-pressed="true"]::after {
+  animation: pop 300ms var(--ease-out) both;
+}
+.meter-fill {
+  transform-origin: left;
+  animation: meter 700ms var(--ease-out) 200ms both;
+}
+@keyframes meter {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Loading skeleton shimmer */
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+.skeleton {
+  border-radius: var(--card-radius);
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border-strong) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn-primary::after {
+    display: none;
   }
 }

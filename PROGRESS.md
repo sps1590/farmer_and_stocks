@@ -13,6 +13,17 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v7, 2026-10-05) — motion
+
+- CSS-only motion system in `globals.css` (transform/opacity only, all removed
+  under `prefers-reduced-motion`): drifting aurora, page entrance with
+  staggered sections (`(app)/template.tsx` + `.page-enter`), cascading lists
+  (`.stagger`), flowing border on the brief card, button sheen, floating
+  weather icon, self-drawing sparklines/charts/logo (`.draw`), pop
+  confirmations, growing meters, shimmer skeleton (`(app)/loading.tsx`).
+- `useTween` animates numbers between values (weather temperature on day
+  change, stock-planner margin and chance of profit).
+
 ## What's built (v6, 2026-10-05) — brand, tokens, logo, polish, marketing
 
 - `docs/brand-guidelines.md`: pillars, voice, logo rules, colour, type, tokens.
@@ -130,6 +141,8 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-10-05 — v7: site-wide motion (entrances, drawing charts, tweened numbers,
+  loading skeleton).
 - 2026-10-05 — v6: brand guidelines, layered tokens, logo + app icon, icon
   family, marketing assets.
 - 2026-10-05 — v5: Home rebuilt around a daily brief, interactive weather,

@@ -105,9 +105,9 @@ export function PriceChart({ history, forecast, label }: { history: { m: string;
             </text>
           ) : null,
         )}
-        {band && <path d={band} fill="var(--chart-band)" stroke="none" />}
-        <path d={histPath} fill="none" stroke="var(--chart-line)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-        {fcPath && <path d={fcPath} fill="none" stroke="var(--chart-line)" strokeWidth={2} strokeDasharray="5 4" strokeLinecap="round" />}
+        {band && <path d={band} fill="var(--chart-band)" stroke="none" className="fade-late" />}
+        <path d={histPath} pathLength={1} className="draw" fill="none" stroke="var(--chart-line)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {fcPath && <path d={fcPath} fill="none" stroke="var(--chart-line)" strokeWidth={2} strokeDasharray="5 4" strokeLinecap="round" className="fade-late" />}
         {lastHist && <circle cx={x(fStart - 1)} cy={y(lastHist.v)} r={4} fill="var(--chart-line)" stroke="var(--surface)" strokeWidth={2} />}
         {hover !== null && hp && (
           <g pointerEvents="none">

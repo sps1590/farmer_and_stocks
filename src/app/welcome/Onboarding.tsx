@@ -60,8 +60,8 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       </header>
 
       {current === "lang" && (
-        <section>
-          <LogoMark size={72} />
+        <section className="rise">
+          <LogoMark size={72} animated />
           <h1 className="mt-3 text-3xl font-extrabold">{t("welcome_title")}</h1>
           <p className="mt-2 text-muted">{t("welcome_body")}</p>
           <h2 className="mb-3 mt-8 font-bold">{t("choose_language")}</h2>
@@ -86,7 +86,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "role" && (
-        <section>
+        <section className="rise">
           <h1 className="mb-4 text-2xl font-extrabold">{t("who_are_you")}</h1>
           <div className="grid gap-3">
             {([
@@ -112,7 +112,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "location" && (
-        <section>
+        <section className="rise">
           <h1 className="mb-4 flex items-center gap-2 text-2xl font-extrabold">
             <MapPin className="size-6 text-primary" aria-hidden /> {t("location_title")}
           </h1>
@@ -121,7 +121,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "commodities" && (
-        <section>
+        <section className="rise">
           <h1 className="text-2xl font-extrabold">{t("choose_commodities")}</h1>
           <div className="mb-3 mt-2 flex items-center justify-between gap-2">
             <span className="text-sm text-muted">
@@ -163,7 +163,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "pushes" && (
-        <section>
+        <section className="rise">
           <h1 className="flex items-center gap-2 text-2xl font-extrabold">
             <Bell className="size-6 text-primary" aria-hidden /> {t("how_many_reminders")}
           </h1>

@@ -72,7 +72,7 @@ export function MyItems({ items }: { items: MyItem[] }) {
         ))}
       </div>
 
-      <ul className="card divide-y divide-border overflow-hidden">
+      <ul className="stagger card divide-y divide-border overflow-hidden">
         {shown.map((it) => (
           <li key={it.key}>
             <button type="button" className="row-tap" aria-expanded={open === it.key} onClick={() => setOpen(open === it.key ? null : it.key)}>

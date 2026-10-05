@@ -81,7 +81,7 @@ export default async function GrowPage() {
         return (
           <section key={w}>
             <h2 className="section-title mb-2">{t(lang, label)}</h2>
-            <ul className="grid gap-2">
+            <ul className="stagger grid gap-2">
               {items.map((p) => (
                 <CropCard key={p.crop.key} p={p} lang={lang} />
               ))}
@@ -121,7 +121,7 @@ function CropCard({ p, lang }: { p: CropPlanItem; lang: "en" | "bn" }) {
         <div>
           <p className="text-muted">{t(lang, "climate_fit")}</p>
           <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuenow={Math.round(p.climateFit * 100)} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(p.climateFit * 100)}%` }} />
+            <div className="meter-fill h-full rounded-full bg-primary" style={{ width: `${Math.round(p.climateFit * 100)}%` }} />
           </div>
           <p className="num mt-0.5 font-bold">{fmtPct(lang, p.climateFit)}</p>
         </div>

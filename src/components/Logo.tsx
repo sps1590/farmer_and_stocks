@@ -1,5 +1,5 @@
 /** Brand mark: a price trend line whose tip grows into a sprout. */
-export function LogoMark({ size = 32, tile = true, className }: { size?: number; tile?: boolean; className?: string }) {
+export function LogoMark({ size = 32, tile = true, animated = false, className }: { size?: number; tile?: boolean; animated?: boolean; className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width={size} height={size} className={className} role="img" aria-label="Krishi Bazar AI">
       <defs>
@@ -13,9 +13,9 @@ export function LogoMark({ size = 32, tile = true, className }: { size?: number;
         </linearGradient>
       </defs>
       {tile && <rect width="64" height="64" rx="15" fill="url(#kb-bg)" stroke="rgba(255,255,255,0.12)" />}
-      <path d="M11 46 L23 35 L31 41 L43 25" fill="none" stroke="url(#kb-g)" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M43 25 C43 15 50 10 57 10 C57 18 52 25 43 25 Z" fill="url(#kb-g)" />
-      <path d="M43 25 C36 24 32 19 32 13 C38 13 43 18 43 25 Z" fill="#6EE7B7" />
+      <path d="M11 46 L23 35 L31 41 L43 25" pathLength={1} className={animated ? "draw" : undefined} fill="none" stroke="url(#kb-g)" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M43 25 C43 15 50 10 57 10 C57 18 52 25 43 25 Z" fill="url(#kb-g)" className={animated ? "leaf" : undefined} />
+      <path d="M43 25 C36 24 32 19 32 13 C38 13 43 18 43 25 Z" fill="#6EE7B7" className={animated ? "leaf leaf-2" : undefined} />
       <circle cx="11" cy="46" r="3.2" fill="#34D399" />
     </svg>
   );

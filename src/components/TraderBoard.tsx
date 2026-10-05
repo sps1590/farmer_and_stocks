@@ -6,6 +6,7 @@ import { compareFlagged, computeMargin, marginFlag, type PriceOutlook } from "@/
 import { FlagPill } from "./Flag";
 import { fmtNum, fmtPct, fmtTaka } from "@/lib/i18n";
 import { useI18n } from "./I18nProvider";
+import { useTween } from "./useTween";
 
 export type BoardItem = {
   key: string;
@@ -33,6 +34,11 @@ function Stepper({ label, value, set, min, max, step, fmt }: { label: string; va
       </div>
     </div>
   );
+}
+
+function Tween({ value, signed = false }: { value: number; signed?: boolean }) {
+  const { lang } = useI18n();
+  return <>{fmtPct(lang, useTween(value), signed)}</>;
 }
 
 export function TraderBoard({ items }: { items: BoardItem[] }) {
@@ -116,14 +122,14 @@ export function TraderBoard({ items }: { items: BoardItem[] }) {
             </div>
             <div>
               <dt className="text-xs text-muted">{t("expected_margin")}</dt>
-              <dd className={`num text-xl font-bold ${sel.m.marginPct >= 0 ? "text-good" : "text-bad"}`}>{fmtPct(lang, sel.m.marginPct, true)}</dd>
+              <dd className={`num text-xl font-bold ${sel.m.marginPct >= 0 ? "text-good" : "text-bad"}`}><Tween value={sel.m.marginPct} signed /></dd>
               <dd className="num text-xs text-muted">
                 {t("margin_range")}: {fmtPct(lang, sel.m.marginLoPct, true)} … {fmtPct(lang, sel.m.marginHiPct, true)}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-muted">{t("prob_profit")}</dt>
-              <dd className="num text-xl font-bold">{fmtPct(lang, sel.m.probProfit)}</dd>
+              <dd className="num text-xl font-bold"><Tween value={sel.m.probProfit} /></dd>
             </div>
           </dl>
         </div>

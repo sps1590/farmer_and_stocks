@@ -45,7 +45,7 @@ export function MarketList({ items }: { items: MarketItem[] }) {
           </button>
         ))}
       </div>
-      <ul className="card divide-y divide-border overflow-hidden">
+      <ul className="stagger card divide-y divide-border overflow-hidden">
         {shown.map((i) => (
           <li key={i.key} className={i.flag ? `flag-bar-${i.flag}` : ""}>
             <Link href={`/market/${i.key}`} className="row-tap">

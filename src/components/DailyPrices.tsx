@@ -36,7 +36,7 @@ export function DailyPrices({ lang, board, mine, spark }: { lang: Lang; board: M
         <span className="text-right">{t(lang, "day_change")}</span>
         <span className="text-right">{t(lang, "week_change")}</span>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="stagger divide-y divide-border">
         {rows.map(({ c, d }) => (
           <li key={c.key}>
             <Link href={`/market/${c.key}`} className="grid min-h-14 grid-cols-[minmax(0,1fr)_4.75rem_4.25rem_4.25rem] items-center gap-2 px-3 py-2.5 text-sm hover:bg-surface-2">

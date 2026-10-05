@@ -34,7 +34,7 @@ export function BottomNav({ role }: { role: string }) {
                   active ? "bg-primary-soft text-primary" : "text-muted hover:text-foreground"
                 }`}
               >
-                <i.icon aria-hidden className={`size-6 ${active ? "drop-shadow-[0_0_10px_var(--primary)]" : ""}`} strokeWidth={active ? 2.4 : 2} />
+                <i.icon aria-hidden className={`size-6 ${active ? "pop drop-shadow-[0_0_10px_var(--primary)]" : ""}`} strokeWidth={active ? 2.4 : 2} />
                 {t(i.key)}
               </Link>
             </li>

@@ -12,9 +12,9 @@ export function Sparkline({ values, width = 72, height = 22, label }: { values: 
   const last = pts[pts.length - 1];
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
-      <path d={`${d}L${width},${height}L0,${height}Z`} fill={color} opacity={0.12} />
-      <path d={d} fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={last[0]} cy={last[1]} r={2.25} fill={color} />
+      <path d={`${d}L${width},${height}L0,${height}Z`} fill={color} fillOpacity={0.12} className="fade-late" />
+      <path d={d} pathLength={1} className="draw" fill="none" stroke={color} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={last[0]} cy={last[1]} r={2.25} fill={color} className="fade-late" />
     </svg>
   );
 }

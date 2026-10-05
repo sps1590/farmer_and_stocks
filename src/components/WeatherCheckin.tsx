@@ -46,7 +46,7 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
     return (
       <section className="card flex items-center justify-between gap-3 p-4">
         <p className="flex items-center gap-2 font-semibold text-good">
-          <CircleCheck className="size-5 shrink-0" aria-hidden /> {t("thanks_weather")}
+          <CircleCheck className="pop size-5 shrink-0" aria-hidden /> {t("thanks_weather")}
         </p>
         <button
           type="button"

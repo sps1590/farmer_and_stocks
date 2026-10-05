@@ -4,6 +4,7 @@ import { Droplets, MapPin } from "lucide-react";
 import { WxIcon } from "./icons";
 import { useState } from "react";
 import { useI18n } from "./I18nProvider";
+import { useTween } from "./useTween";
 import { describeCode } from "@/lib/wx";
 import { dayName, fmtNum } from "@/lib/i18n";
 
@@ -22,6 +23,8 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
   const desc = day ? describeCode(day.weather_code ?? 0) : now ? describeCode(now.code, now.isDay) : null;
   const code = day ? (day.weather_code ?? 0) : (now?.code ?? 0);
   const tone = code >= 51 ? "hero-rain" : !day && now && !now.isDay ? "hero-night" : "";
+  const headline = day ? day.tmax : (now?.temp ?? null);
+  const shownTemp = useTween(headline ?? 0);
   const kmh = lang === "bn" ? "কিমি/ঘ" : "km/h";
   const deg = (v: number | null) => (v !== null ? `${fmtNum(lang, v)}°` : "–");
 
@@ -58,14 +61,14 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
             <MapPin className="size-3.5 shrink-0" aria-hidden /> {place}
           </p>
           <p className="big-num mt-1 text-6xl font-bold leading-none" aria-live="polite">
-            {day ? deg(day.tmax) : now ? deg(now.temp) : "–"}
+            {headline !== null ? deg(Math.round(shownTemp)) : "–"}
           </p>
           <p className="mt-1.5 text-sm font-semibold">
             {day ? dayName(lang, day.date) : t("now_label")} · {desc ? t(desc.key) : ""}
           </p>
         </div>
         {desc && (
-          <WxIcon code={code} isDay={day ? true : (now?.isDay ?? true)} className="size-16 shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
+          <WxIcon code={code} isDay={day ? true : (now?.isDay ?? true)} className="float size-16 shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
         )}
       </div>
 
