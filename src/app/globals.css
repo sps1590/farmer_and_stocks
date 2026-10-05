@@ -674,6 +674,71 @@ a.card:active,
   to { transform: scaleX(1); }
 }
 
+/* Growing-crop loader (CropLoader): the stem rises, leaves unfurl one by one,
+   the ear ripens, then the plant fades and grows again. The resting styles are
+   the fully grown plant, which is what reduced motion shows. */
+.crop-badge {
+  border-radius: 1.75rem;
+  background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  animation: fade-in 180ms ease-out both;
+}
+/* Navigation overlay: wait a moment so instant page changes don't flash it. */
+.crop-badge-delayed {
+  animation-delay: 160ms;
+}
+.crop-plant {
+  animation: crop-cycle 2.8s linear infinite;
+}
+.crop-stem {
+  stroke-dasharray: 1;
+  animation: crop-stem 2.8s var(--ease-out) infinite;
+}
+.crop-leaf,
+.crop-ear {
+  transform-box: fill-box;
+  animation-duration: 2.8s;
+  animation-timing-function: var(--ease-out);
+  animation-iteration-count: infinite;
+}
+.crop-leaf-1 { transform-origin: 0% 100%; animation-name: crop-leaf-1; }
+.crop-leaf-2 { transform-origin: 100% 100%; animation-name: crop-leaf-2; }
+.crop-leaf-3 { transform-origin: 0% 100%; animation-name: crop-leaf-3; }
+.crop-leaf-4 { transform-origin: 100% 100%; animation-name: crop-leaf-4; }
+.crop-ear { transform-origin: 50% 100%; animation-name: crop-ear; }
+@keyframes crop-cycle {
+  0%, 86% { opacity: 1; }
+  97%, 100% { opacity: 0; }
+}
+@keyframes crop-stem {
+  0%, 4% { stroke-dashoffset: 1; }
+  40%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes crop-leaf-1 {
+  0%, 16% { transform: scale(0); }
+  30%, 100% { transform: scale(1); }
+}
+@keyframes crop-leaf-2 {
+  0%, 24% { transform: scale(0); }
+  38%, 100% { transform: scale(1); }
+}
+@keyframes crop-leaf-3 {
+  0%, 32% { transform: scale(0); }
+  46%, 100% { transform: scale(1); }
+}
+@keyframes crop-leaf-4 {
+  0%, 40% { transform: scale(0); }
+  54%, 100% { transform: scale(1); }
+}
+@keyframes crop-ear {
+  0%, 50% { transform: scale(0); }
+  64% { transform: scale(1.18); }
+  72%, 100% { transform: scale(1); }
+}
+
 /* Loading skeleton shimmer */
 @keyframes shimmer {
   to { background-position: -200% 0; }

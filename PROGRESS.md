@@ -13,6 +13,14 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v9, 2026-10-05) — growing-crop loader
+
+- `CropLoader` (pure CSS, `.crop-*` in `globals.css`): a crop sprouts, leafs
+  and ripens on a loop. Shown by `(app)/loading.tsx` while a screen's data
+  streams, and by `NavLoader` (in the app layout) from the moment any internal
+  link is tapped until the address changes — this covers page switches and
+  server-loaded tabs such as `/trader?view=...`. Replaces the skeleton screen.
+
 ## What's built (v8, 2026-10-05) — Motion (motion.dev)
 
 - `motion` v14 via `MotionProvider` in the root layout: `LazyMotion` (features
@@ -153,6 +161,7 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-10-05 — v9: growing-crop loading animation for page and tab changes.
 - 2026-10-05 — v8: Motion library for layout, presence and spring animations.
 - 2026-10-05 — v7: site-wide motion (entrances, drawing charts, tweened numbers,
   loading skeleton).
