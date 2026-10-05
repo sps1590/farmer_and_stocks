@@ -3,6 +3,7 @@
 import { Droplets, MapPin } from "lucide-react";
 import { WxIcon } from "./icons";
 import { useState } from "react";
+import { AnimatePresence, m } from "motion/react";
 import { useI18n } from "./I18nProvider";
 import { useTween } from "./useTween";
 import { describeCode } from "@/lib/wx";
@@ -49,9 +50,11 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
   }
 
   const chip = (active: boolean) =>
-    `flex min-h-11 min-w-[3.6rem] shrink-0 cursor-pointer flex-col items-center gap-1 rounded-2xl border px-2 py-2 text-xs transition-colors ${
-      active ? "border-white/60 bg-white/20 font-bold" : "border-white/10 bg-white/5 opacity-85"
+    `relative flex min-h-11 min-w-[3.6rem] shrink-0 cursor-pointer flex-col items-center gap-1 rounded-2xl border border-white/10 px-2 py-2 text-xs transition-opacity ${
+      active ? "font-bold" : "bg-white/5 opacity-85"
     }`;
+  // The highlight is one shared element, so it slides from the old day to the new one.
+  const selected = <m.span layoutId="wx-selected" className="absolute inset-0 rounded-2xl border border-white/60 bg-white/20" aria-hidden />;
 
   return (
     <section className={`hero ${tone} rise p-4`} aria-label={t("weather_now")}>
@@ -63,44 +66,52 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
           <p className="big-num mt-1 text-6xl font-bold leading-none" aria-live="polite">
             {headline !== null ? deg(Math.round(shownTemp)) : "–"}
           </p>
-          <p className="mt-1.5 text-sm font-semibold">
-            {day ? dayName(lang, day.date) : t("now_label")} · {desc ? t(desc.key) : ""}
-          </p>
+          <AnimatePresence mode="wait" initial={false}>
+            <m.p key={sel} className="mt-1.5 text-sm font-semibold" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>
+              {day ? dayName(lang, day.date) : t("now_label")} · {desc ? t(desc.key) : ""}
+            </m.p>
+          </AnimatePresence>
         </div>
         {desc && (
-          <WxIcon code={code} isDay={day ? true : (now?.isDay ?? true)} className="float size-16 shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
+          <AnimatePresence mode="wait" initial={false}>
+            <m.span key={sel} className="shrink-0" initial={{ opacity: 0, scale: 0.7, rotate: -12 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.7, rotate: 12 }} transition={{ duration: 0.18 }}>
+              <WxIcon code={code} isDay={day ? true : (now?.isDay ?? true)} className="float size-16 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
+            </m.span>
+          </AnimatePresence>
         )}
       </div>
 
       <dl className="mt-3 grid grid-cols-4 gap-1.5 text-center text-xs">
         {tiles.map(([k, v]) => (
-          <div key={k} className="hero-tile px-1 py-1.5">
+          <m.div key={`${sel}-${k}`} className="hero-tile px-1 py-1.5" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <dt className="leading-tight opacity-80">{k}</dt>
             <dd className="num mt-0.5 text-sm font-bold">{v}</dd>
-          </div>
+          </m.div>
         ))}
       </dl>
 
-      <div className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="group" aria-label={t("weather_7day")}>
+      <m.div layoutScroll className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none]" role="group" aria-label={t("weather_7day")}>
         {now && (
           <button type="button" className={chip(sel === -1)} aria-pressed={sel === -1} onClick={() => setSel(-1)}>
-            <span>{t("now_label")}</span>
-            <WxIcon code={now.code} isDay={now.isDay} />
-            <span className="num">{deg(now.temp)}</span>
+            {sel === -1 && selected}
+            <span className="relative">{t("now_label")}</span>
+            <WxIcon code={now.code} isDay={now.isDay} className="relative size-5 shrink-0" />
+            <span className="num relative">{deg(now.temp)}</span>
           </button>
         )}
         {days.map((d, i) => (
           <button key={d.date} type="button" className={chip(sel === i)} aria-pressed={sel === i} onClick={() => setSel(i)}>
-            <span>{dayName(lang, d.date)}</span>
-            <WxIcon code={d.weather_code ?? 0} />
-            <span className="num">{deg(d.tmax)}</span>
-            <span className="num inline-flex items-center gap-0.5 text-xs opacity-80">
+            {sel === i && selected}
+            <span className="relative">{dayName(lang, d.date)}</span>
+            <WxIcon code={d.weather_code ?? 0} className="relative size-5 shrink-0" />
+            <span className="num relative">{deg(d.tmax)}</span>
+            <span className="num relative inline-flex items-center gap-0.5 text-xs opacity-80">
               <Droplets className="size-3" aria-hidden />
               {fmtNum(lang, d.precip_prob ?? 0)}%
             </span>
           </button>
         ))}
-      </div>
+      </m.div>
     </section>
   );
 }

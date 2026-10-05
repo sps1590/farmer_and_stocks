@@ -3,6 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import { ItemAvatar, TrendIcon } from "./icons";
 import { useState } from "react";
+import { AnimatePresence, m } from "motion/react";
 import Link from "next/link";
 import { useI18n } from "./I18nProvider";
 import { PriceReporter } from "./PriceReporter";
@@ -64,10 +65,18 @@ export function MyItems({ items }: { items: MyItem[] }) {
 
   return (
     <div className="space-y-2">
-      <div className="segmented grid-cols-3" role="group" aria-label={t("watchlist")}>
+      {/* Period switch: the highlight slides between options */}
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-border bg-surface-2 p-1" role="group" aria-label={t("watchlist")}>
         {PERIODS.map(([p, label]) => (
-          <button key={p} type="button" className={`min-h-11 rounded-xl text-sm font-bold ${period === p ? "" : "text-muted"}`} aria-pressed={period === p} onClick={() => setPeriod(p)}>
-            {t(label)}
+          <button
+            key={p}
+            type="button"
+            className={`relative min-h-11 cursor-pointer rounded-xl text-sm font-bold transition-colors ${period === p ? "text-primary" : "text-muted"}`}
+            aria-pressed={period === p}
+            onClick={() => setPeriod(p)}
+          >
+            {period === p && <m.span layoutId="watch-period" className="absolute inset-0 rounded-xl bg-surface shadow-[var(--glow)]" aria-hidden />}
+            <span className="relative">{t(label)}</span>
           </button>
         ))}
       </div>
@@ -89,14 +98,24 @@ export function MyItems({ items }: { items: MyItem[] }) {
                 <Delta value={it[period]} label={t(PERIODS.find(([p]) => p === period)![1])} />
               </span>
             </button>
-            {open === it.key && (
-              <div className="space-y-2 bg-surface-2 p-3">
-                <PriceReporter commodity={it.key} name={it.name} icon={it.icon} unit={it.unit} reference={it.reference} source={it.source} reported={it.reported} />
-                <Link href={`/market/${it.key}`} className="block text-center text-sm font-semibold text-primary">
-                  {t("details")} <ChevronRight className="inline size-4" aria-hidden />
-                </Link>
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {open === it.key && (
+                <m.div
+                  key="detail"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-2 bg-surface-2 p-3">
+                    <PriceReporter commodity={it.key} name={it.name} icon={it.icon} unit={it.unit} reference={it.reference} source={it.source} reported={it.reported} />
+                    <Link href={`/market/${it.key}`} className="flex min-h-11 items-center justify-center text-sm font-semibold text-primary">
+                      {t("details")} <ChevronRight className="inline size-4" aria-hidden />
+                    </Link>
+                  </div>
+                </m.div>
+              )}
+            </AnimatePresence>
           </li>
         ))}
       </ul>

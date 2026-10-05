@@ -3,6 +3,7 @@
 import { House, Menu, Sprout, TrendingUp, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { m } from "motion/react";
 import { useI18n } from "./I18nProvider";
 import type { DictKey } from "@/lib/i18n";
 
@@ -13,7 +14,7 @@ const ITEMS: { href: string; key: DictKey; icon: LucideIcon; also?: string[] }[]
   { href: "/settings", key: "nav_more", icon: Menu, also: ["/accuracy"] },
 ];
 
-/** Floating glass navigation pill. */
+/** Floating glass navigation pill; the highlight slides to the active tab. */
 export function BottomNav({ role }: { role: string }) {
   const pathname = usePathname();
   const { t } = useI18n();
@@ -30,12 +31,15 @@ export function BottomNav({ role }: { role: string }) {
               <Link
                 href={i.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-xs font-bold transition-colors ${
-                  active ? "bg-primary-soft text-primary" : "text-muted hover:text-foreground"
+                className={`relative flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-xs font-bold transition-colors ${
+                  active ? "text-primary" : "text-muted hover:text-foreground"
                 }`}
               >
-                <i.icon aria-hidden className={`size-6 ${active ? "pop drop-shadow-[0_0_10px_var(--primary)]" : ""}`} strokeWidth={active ? 2.4 : 2} />
-                {t(i.key)}
+                {active && <m.span layoutId="nav-active" className="absolute inset-0 rounded-2xl bg-primary-soft" aria-hidden />}
+                <m.span className="relative" animate={{ y: active ? -1 : 0, scale: active ? 1.08 : 1 }}>
+                  <i.icon aria-hidden className={`size-6 ${active ? "drop-shadow-[0_0_10px_var(--primary)]" : ""}`} strokeWidth={active ? 2.4 : 2} />
+                </m.span>
+                <span className="relative">{t(i.key)}</span>
               </Link>
             </li>
           );

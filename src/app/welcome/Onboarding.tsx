@@ -3,6 +3,7 @@
 import { ArrowLeft, ArrowRight, Bell, Handshake, MapPin, Store, Tractor } from "lucide-react";
 import { BrandHeader, LogoMark } from "@/components/Logo";
 import { useState, useTransition } from "react";
+import { AnimatePresence, m } from "motion/react";
 import type { DictKey, Lang } from "@/lib/i18n";
 import { createDevice, setWelcomeLanguage } from "@/lib/actions/device";
 import { LocationPicker, type LocationValue } from "@/components/LocationPicker";
@@ -29,7 +30,11 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
   const [pending, start] = useTransition();
   const t = (k: DictKey) => dicts[lang][k];
   const name = (x: Named) => (lang === "bn" ? x.name_bn : x.name_en);
-  const go = (n: number) => setStep((s) => Math.min(STEPS.length - 1, Math.max(0, s + n)));
+  const [dir, setDir] = useState(1); // 1 = forward, -1 = back
+  const go = (n: number) => {
+    setDir(n >= 0 ? 1 : -1);
+    setStep((s) => Math.min(STEPS.length - 1, Math.max(0, s + n)));
+  };
 
   function finish(pushes: number) {
     if (!role || !loc.district || !picked.length) return;
@@ -54,13 +59,25 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
         <BrandHeader name={t("app_name")} />
         <div className="mt-3 flex gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
-            <span key={s} className={`h-2 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-border"}`} />
+            <span key={s} className="h-2 flex-1 overflow-hidden rounded-full bg-border">
+              <m.span className="block h-full origin-left rounded-full bg-primary" initial={false} animate={{ scaleX: i <= step ? 1 : 0 }} />
+            </span>
           ))}
         </div>
       </header>
 
+      <AnimatePresence mode="wait" initial={false} custom={dir}>
+        <m.div
+          key={current}
+          custom={dir}
+          variants={{ enter: (d: number) => ({ opacity: 0, x: 28 * d }), center: { opacity: 1, x: 0 }, exit: (d: number) => ({ opacity: 0, x: -28 * d }) }}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+        >
       {current === "lang" && (
-        <section className="rise">
+        <section>
           <LogoMark size={72} animated />
           <h1 className="mt-3 text-3xl font-extrabold">{t("welcome_title")}</h1>
           <p className="mt-2 text-muted">{t("welcome_body")}</p>
@@ -86,7 +103,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "role" && (
-        <section className="rise">
+        <section>
           <h1 className="mb-4 text-2xl font-extrabold">{t("who_are_you")}</h1>
           <div className="grid gap-3">
             {([
@@ -112,7 +129,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "location" && (
-        <section className="rise">
+        <section>
           <h1 className="mb-4 flex items-center gap-2 text-2xl font-extrabold">
             <MapPin className="size-6 text-primary" aria-hidden /> {t("location_title")}
           </h1>
@@ -121,7 +138,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "commodities" && (
-        <section className="rise">
+        <section>
           <h1 className="text-2xl font-extrabold">{t("choose_commodities")}</h1>
           <div className="mb-3 mt-2 flex items-center justify-between gap-2">
             <span className="text-sm text-muted">
@@ -163,7 +180,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
       )}
 
       {current === "pushes" && (
-        <section className="rise">
+        <section>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold">
             <Bell className="size-6 text-primary" aria-hidden /> {t("how_many_reminders")}
           </h1>
@@ -179,6 +196,8 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
           {error && <p className="mt-4 text-bad">{error}</p>}
         </section>
       )}
+        </m.div>
+      </AnimatePresence>
 
       {step > 0 && (
         <button type="button" className="tap mt-6" onClick={() => go(-1)} disabled={pending}>

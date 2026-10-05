@@ -2,6 +2,7 @@
 
 import { CircleCheck, CloudDrizzle, CloudRainWind, Flame, Leaf, Snowflake, Sun, Thermometer, ThermometerSnowflake, ThermometerSun, Tornado, type LucideIcon } from "lucide-react";
 import { useState, useTransition } from "react";
+import { AnimatePresence, m } from "motion/react";
 import { submitWeather } from "@/lib/actions/reports";
 import { useI18n } from "./I18nProvider";
 import type { DictKey } from "@/lib/i18n";
@@ -42,9 +43,11 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
 
   const slotKey = (`slot_${slot}` as DictKey);
 
+  const unfold = { initial: { height: 0, opacity: 0 }, animate: { height: "auto", opacity: 1 }, exit: { height: 0, opacity: 0 } } as const;
+
   if (done) {
     return (
-      <section className="card flex items-center justify-between gap-3 p-4">
+      <m.section className="card flex items-center justify-between gap-3 p-4" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
         <p className="flex items-center gap-2 font-semibold text-good">
           <CircleCheck className="pop size-5 shrink-0" aria-hidden /> {t("thanks_weather")}
         </p>
@@ -59,7 +62,7 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
         >
           {t("change_answer")}
         </button>
-      </section>
+      </m.section>
     );
   }
 
@@ -79,8 +82,9 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
         </div>
       </fieldset>
 
+      <AnimatePresence initial={false}>
       {rain && (
-        <fieldset>
+        <m.fieldset key="heat" {...unfold} className="overflow-hidden">
           <legend className="mb-2 font-bold">{t("q_heat")}</legend>
           <div className="grid grid-cols-5 gap-1.5">
             {HEAT.map((o) => (
@@ -90,11 +94,11 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
               </button>
             ))}
           </div>
-        </fieldset>
+        </m.fieldset>
       )}
 
       {rain && heat && (
-        <fieldset>
+        <m.fieldset key="storm" {...unfold} className="overflow-hidden">
           <legend className="mb-2 font-bold">{t("q_storm")}</legend>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" className="tap" disabled={pending} onClick={() => save(true)}>
@@ -104,8 +108,9 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
               <Leaf className="size-5" aria-hidden /> {t("no")}
             </button>
           </div>
-        </fieldset>
+        </m.fieldset>
       )}
+      </AnimatePresence>
       {error && <p className="text-sm text-bad">{t("error_generic")}</p>}
     </section>
   );

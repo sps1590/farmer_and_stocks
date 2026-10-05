@@ -13,6 +13,18 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v8, 2026-10-05) — Motion (motion.dev)
+
+- `motion` v14 via `MotionProvider` in the root layout: `LazyMotion` (features
+  loaded on demand from `src/lib/motion-features.ts`, `strict`, so use `m.*`
+  not `motion.*`) + `MotionConfig reducedMotion="user"` and a shared spring.
+- Used where CSS can't: sliding highlights with `layoutId` (bottom nav,
+  watchlist period switch, weather day selector with `layoutScroll`),
+  `AnimatePresence` expand/collapse (watchlist rows, check-in questions),
+  cross-fading weather headline/icon, direction-aware onboarding steps and
+  progress bar, and `useTween` (Motion `animate`) for changing numbers.
+- CSS motion from v7 stays for entrances, drawing lines and ambient effects.
+
 ## What's built (v7, 2026-10-05) — motion
 
 - CSS-only motion system in `globals.css` (transform/opacity only, all removed
@@ -141,6 +153,7 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-10-05 — v8: Motion library for layout, presence and spring animations.
 - 2026-10-05 — v7: site-wide motion (entrances, drawing charts, tweened numbers,
   loading skeleton).
 - 2026-10-05 — v6: brand guidelines, layered tokens, logo + app icon, icon

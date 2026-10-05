@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_Bengali, Space_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 import { getLang } from "@/lib/device";
 import { isDbConfigured } from "@/lib/db";
+import { MotionProvider } from "@/components/MotionProvider";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
@@ -32,7 +33,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang={lang} data-theme={theme} className={`${inter.variable} ${bengali.variable} ${display.variable} h-full antialiased`}>
       <body className="min-h-full">
         {configured ? (
-          children
+          <MotionProvider>{children}</MotionProvider>
         ) : (
           <main className="mx-auto max-w-md p-6">
             <h1 className="text-xl font-bold">Krishi Bazar AI</h1>

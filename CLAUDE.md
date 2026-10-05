@@ -19,3 +19,6 @@ and changelog whenever a feature or schema change lands.
   with < 20 tested months as "low data".
 - Run `npm run lint && npm run typecheck && npm test && npm run test:py`
   before committing.
+- Animation: CSS classes in `globals.css` for entrances/ambient motion; Motion
+  (`m.*` from `motion/react`, never `motion.*` — LazyMotion is strict) for layout,
+  presence and spring animations. Everything must respect reduced motion.

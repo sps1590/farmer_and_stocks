@@ -1,43 +1,31 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { animate } from "motion";
 
 /**
  * Smoothly animates a number whenever it changes (e.g. the temperature when a
- * different day is tapped, or a margin when a slider moves). The first render
- * shows the real value immediately, so there is no flash on page load, and
- * the animation is skipped for people who prefer reduced motion.
+ * different day is tapped, or a margin when a slider moves), using Motion's
+ * `animate`. The first render shows the real value immediately, so there is
+ * no flash on page load; people who prefer reduced motion get the value at once.
  */
-export function useTween(value: number, durationMs = 450): number {
+export function useTween(value: number, durationSec = 0.45): number {
   const [shown, setShown] = useState(value);
-  const from = useRef(value);
-  const frame = useRef<number | null>(null);
+  const current = useRef(value);
 
   useEffect(() => {
-    const start = from.current;
-    if (start === value) return;
-    const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      from.current = value;
-      frame.current = requestAnimationFrame(() => setShown(value));
-      return () => {
-        if (frame.current !== null) cancelAnimationFrame(frame.current);
-      };
-    }
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - t0) / durationMs);
-      const eased = 1 - (1 - p) ** 3; // ease-out cubic
-      const v = start + (value - start) * eased;
-      from.current = v;
-      setShown(v);
-      if (p < 1) frame.current = requestAnimationFrame(tick);
-    };
-    frame.current = requestAnimationFrame(tick);
-    return () => {
-      if (frame.current !== null) cancelAnimationFrame(frame.current);
-    };
-  }, [value, durationMs]);
+    if (current.current === value) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const controls = animate(current.current, value, {
+      duration: reduce ? 0 : durationSec,
+      ease: [0.2, 0.8, 0.2, 1],
+      onUpdate: (v) => {
+        current.current = v;
+        setShown(v);
+      },
+    });
+    return () => controls.stop();
+  }, [value, durationSec]);
 
   return shown;
 }
