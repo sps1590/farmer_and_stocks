@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Weather, crop prices and forecasts for Bangladesh farmers and traders",
     start_url: "/today",
     display: "standalone",
-    background_color: "#f6f5ef",
-    theme_color: "#1b6e4a",
+    background_color: "#060a13",
+    theme_color: "#060a13",
     lang: "bn",
     icons: [
       { src: "/pwa-icon/192", sizes: "192x192", type: "image/png" },

@@ -13,6 +13,20 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v6, 2026-10-05) — brand, tokens, logo, polish, marketing
+
+- `docs/brand-guidelines.md`: pillars, voice, logo rules, colour, type, tokens.
+- `globals.css` tokens in three layers (primitive -> semantic -> component),
+  plus radius / icon-size / motion / touch-target scales.
+- Logo: trend line growing into a sprout (`public/brand/*.svg`,
+  `src/components/Logo.tsx`); used for favicon (`app/icon.svg`), PWA icons and
+  the header of every screen.
+- UI polish: all interface emoji replaced by Lucide icons
+  (`src/components/icons.tsx`); commodity emoji kept only as product pictures
+  inside `ItemAvatar`; min text 12 px, min touch target 44 px, cursor-pointer.
+- Marketing: `marketing/` (Facebook cover, square post, link preview) built by
+  `marketing/build.py`; link preview wired as the Open Graph image.
+
 ## What's built (v5, 2026-10-05) — Home rebuilt
 
 - One prioritized column: "Today's brief" (up to 3 plain sentences from
@@ -116,6 +130,8 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-10-05 — v6: brand guidelines, layered tokens, logo + app icon, icon
+  family, marketing assets.
 - 2026-10-05 — v5: Home rebuilt around a daily brief, interactive weather,
   swipe cards and a watchlist.
 - 2026-09-27 — v4: TCB 5-year archive backfill, twice-daily automatic price

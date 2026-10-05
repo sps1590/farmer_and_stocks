@@ -64,7 +64,7 @@ export function PriceReporter({ commodity, name, icon, unit, reference, source, 
         </p>
         <div className="flex gap-1" role="group">
           {(["retail", "wholesale"] as const).map((k) => (
-            <button key={k} type="button" className="tap min-h-9 px-2.5 text-xs" aria-pressed={type === k} onClick={() => switchType(k)}>
+            <button key={k} type="button" className="tap min-h-11 px-2.5 text-xs" aria-pressed={type === k} onClick={() => switchType(k)}>
               {t(k)}
               {saved[k] !== undefined && " ✓"}
             </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getPriceRefreshStatus, requestPriceRefresh } from "@/lib/actions/prices";
@@ -57,13 +58,12 @@ export function UpdatePricesButton({ initial }: { initial: Status }) {
       <button type="button" className="btn-primary w-full text-base" disabled={pending || running} onClick={update} aria-live="polite">
         {running ? (
           <>
-            <span className="inline-block animate-spin" aria-hidden>
-              ⟳
-            </span>{" "}
-            {t("updating")}
+            <RefreshCw className="size-5 animate-spin" aria-hidden /> {t("updating")}
           </>
         ) : (
-          <>🔄 {t("update_prices")}</>
+          <>
+            <RefreshCw className="size-5" aria-hidden /> {t("update_prices")}
+          </>
         )}
       </button>
       {running && <p className="text-center text-xs text-muted">{t("updating_hint")}</p>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Bell, BellRing } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { savePushSubscription } from "@/lib/actions/device";
 import { useI18n } from "./I18nProvider";
@@ -54,12 +55,16 @@ export function PushManager({ hasPush, vapidKey }: { hasPush: boolean; vapidKey:
   }
 
   if (state === "loading" || state === "on") {
-    return state === "on" ? <p className="text-center text-sm text-muted">🔔 {t("push_on")}</p> : null;
+    return state === "on" ? <p className="flex items-center justify-center gap-1.5 text-sm text-muted">
+        <BellRing className="size-4" aria-hidden /> {t("push_on")}
+      </p> : null;
   }
 
   return (
     <section className="card p-4">
-      <p className="font-bold">🔔 {t("enable_push")}</p>
+      <p className="flex items-center gap-2 font-bold">
+        <Bell className="size-5 text-primary" aria-hidden /> {t("enable_push")}
+      </p>
       {state === "off" && (
         <>
           <p className="mt-1 text-sm text-muted">{t("enable_push_body")}</p>

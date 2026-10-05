@@ -1,5 +1,7 @@
 "use client";
 
+import { Star } from "lucide-react";
+import { FlagIcon, ItemAvatar } from "./icons";
 import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "./I18nProvider";
@@ -36,8 +38,9 @@ export function MarketList({ items }: { items: MarketItem[] }) {
     <div className="space-y-3">
       <div className="flex gap-2 overflow-x-auto pb-1" role="group">
         {FILTERS.map((f) => (
-          <button key={f} type="button" className="tap min-h-10 shrink-0 px-3 text-sm" aria-pressed={filter === f} onClick={() => setFilter(f)}>
-            {f === "all" ? t("filter_all") : f === "green" ? `▲ ${t("flag_green")}` : f === "orange" ? `■ ${t("flag_orange")}` : `▼ ${t("flag_red")}`}
+          <button key={f} type="button" className="tap min-h-11 shrink-0 px-3 text-sm" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+            {f !== "all" && <FlagIcon flag={f} />}
+            {f === "all" ? t("filter_all") : f === "green" ? t("flag_green") : f === "orange" ? t("flag_orange") : t("flag_red")}
             <span className="num text-xs text-muted">{count(f)}</span>
           </button>
         ))}
@@ -46,12 +49,10 @@ export function MarketList({ items }: { items: MarketItem[] }) {
         {shown.map((i) => (
           <li key={i.key} className={i.flag ? `flag-bar-${i.flag}` : ""}>
             <Link href={`/market/${i.key}`} className="row-tap">
-              <span className="text-2xl" aria-hidden>
-                {i.icon}
-              </span>
+              <ItemAvatar icon={i.icon} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold">
-                  {i.name} {i.mine && <span className="text-xs text-primary">★</span>}
+                  {i.name} {i.mine && <Star className="inline size-3 fill-current text-primary" aria-hidden />}
                 </span>
                 <span className="num block text-xs text-muted">
                   {i.change !== null

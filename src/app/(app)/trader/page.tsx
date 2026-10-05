@@ -1,3 +1,5 @@
+import { Info } from "lucide-react";
+import { BrandHeader } from "@/components/Logo";
 import Link from "next/link";
 import { requireDevice } from "@/lib/device";
 import { UNIT_LABEL } from "@/lib/catalog";
@@ -75,11 +77,13 @@ export default async function MarketPage({ searchParams }: PageProps<"/trader">)
   return (
     <div className="space-y-5">
       <header className="rise">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Krishi Bazar · AI</p>
-        <h1 className="text-3xl font-bold">
+        <BrandHeader name={t(lang, "app_name")} />
+        <h1 className="mt-3 text-3xl font-bold">
           <span className="text-gradient">{t(lang, "market_title")}</span>
         </h1>
-        <p className="mt-1 text-xs text-muted">ⓘ {t(lang, "no_discount_note")}</p>
+        <p className="mt-1 flex items-center gap-1 text-xs text-muted">
+          <Info className="size-3.5 shrink-0" aria-hidden /> {t(lang, "no_discount_note")}
+        </p>
       </header>
 
       <UpdatePricesButton initial={status} />

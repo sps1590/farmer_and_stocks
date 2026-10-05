@@ -15,8 +15,10 @@ export type BriefKey =
   | "brief_outlook_up"
   | "brief_outlook_down";
 
+export type BriefIcon = "storm" | "rain" | "heat" | "sun" | "drizzle" | "up" | "down" | "plant" | "gain" | "loss";
+
 export type BriefLine = {
-  icon: string;
+  icon: BriefIcon;
   key: BriefKey;
   /** Raw values; the caller formats numbers for the user's language. */
   vars: { name?: string; pct?: number; temp?: number };
@@ -40,11 +42,11 @@ export type BriefInput = {
 
 function weatherLine(w: NonNullable<BriefInput["weather"]>): BriefLine {
   const rain = w.rainChance ?? 0;
-  if ((w.code ?? 0) >= 95) return { icon: "⛈️", key: "brief_storm", vars: {}, tone: "bad" };
-  if (rain >= 70) return { icon: "🌧️", key: "brief_rain_likely", vars: { pct: rain / 100 }, tone: "warn" };
-  if ((w.tmax ?? 0) >= 36) return { icon: "🥵", key: "brief_hot", vars: { temp: w.tmax! }, tone: "warn" };
-  if (rain <= 20) return { icon: "☀️", key: "brief_dry", vars: {}, tone: "good" };
-  return { icon: "🌦️", key: "brief_rain_possible", vars: { pct: rain / 100 }, tone: "info" };
+  if ((w.code ?? 0) >= 95) return { icon: "storm", key: "brief_storm", vars: {}, tone: "bad" };
+  if (rain >= 70) return { icon: "rain", key: "brief_rain_likely", vars: { pct: rain / 100 }, tone: "warn" };
+  if ((w.tmax ?? 0) >= 36) return { icon: "heat", key: "brief_hot", vars: { temp: w.tmax! }, tone: "warn" };
+  if (rain <= 20) return { icon: "sun", key: "brief_dry", vars: {}, tone: "good" };
+  return { icon: "drizzle", key: "brief_rain_possible", vars: { pct: rain / 100 }, tone: "info" };
 }
 
 export function buildBrief(i: BriefInput): { lines: BriefLine[]; action: BriefAction } {
@@ -54,7 +56,7 @@ export function buildBrief(i: BriefInput): { lines: BriefLine[]; action: BriefAc
   if (i.mover && Math.abs(i.mover.change) >= 0.02) {
     const up = i.mover.change > 0;
     lines.push({
-      icon: up ? "📈" : "📉",
+      icon: up ? "up" : "down",
       key: up ? "brief_up" : "brief_down",
       vars: { name: i.mover.name, pct: Math.abs(i.mover.change) },
       tone: "info",
@@ -63,12 +65,12 @@ export function buildBrief(i: BriefInput): { lines: BriefLine[]; action: BriefAc
   }
 
   if (i.crop && i.crop.flag !== "red") {
-    lines.push({ icon: "🌱", key: "brief_plant", vars: { name: i.crop.name }, tone: i.crop.flag === "green" ? "good" : "info", href: "/farmer" });
+    lines.push({ icon: "plant", key: "brief_plant", vars: { name: i.crop.name }, tone: i.crop.flag === "green" ? "good" : "info", href: "/farmer" });
   }
   if (i.outlook && i.outlook.flag !== "orange") {
     const up = i.outlook.flag === "green";
     lines.push({
-      icon: up ? "🟢" : "🔴",
+      icon: up ? "gain" : "loss",
       key: up ? "brief_outlook_up" : "brief_outlook_down",
       vars: { name: i.outlook.name, pct: Math.abs(i.outlook.change) },
       tone: up ? "good" : "bad",

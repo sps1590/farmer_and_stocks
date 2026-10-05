@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Krishi Bazar AI">
+  <path d="M11 46 L23 35 L31 41 L43 25" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 25 C43 15 50 10 57 10 C57 18 52 25 43 25 Z" fill="currentColor"/>
+  <path d="M43 25 C36 24 32 19 32 13 C38 13 43 18 43 25 Z" fill="currentColor" opacity="0.7"/>
+  <circle cx="11" cy="46" r="3.2" fill="currentColor"/>
+</svg>

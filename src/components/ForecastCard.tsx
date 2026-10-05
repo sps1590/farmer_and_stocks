@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { FlagIcon, ItemAvatar } from "./icons";
 import { COMMODITY_BY_KEY, UNIT_LABEL } from "@/lib/catalog";
 import { fmtPct, fmtTaka, fmtYm, t, type Lang } from "@/lib/i18n";
 import { outlookFrom, priceHistory, type CurrentPrice, type ForecastRow } from "@/lib/queries";
@@ -58,10 +60,10 @@ export async function ForecastCard({
     <div className="card p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-bold">
-            <span aria-hidden>{c.icon}</span> {name}
+          <p className="flex items-center gap-2 font-bold">
+            <ItemAvatar icon={c.icon} /> {name}
           </p>
-          <p className="text-xs text-muted">
+          <p className="mt-1 text-xs text-muted">
             {t(lang, "source")}: {SOURCE_LABEL[first.series_source]?.[lang] ?? first.series_source} · {t(lang, "as_of")} {fmtYm(lang, first.last_month)}
           </p>
         </div>
@@ -70,8 +72,8 @@ export async function ForecastCard({
             <p className="text-xs text-muted">
               {t(lang, "in_months")} 3 {t(lang, "months")}
             </p>
-            <p className={`num text-lg font-bold ${change > 0.03 ? "text-good" : change < -0.03 ? "text-bad" : ""}`}>
-              {change > 0.03 ? "▲" : change < -0.03 ? "▼" : "■"} {fmtPct(lang, change, true)}
+            <p className={`num flex items-center justify-end gap-1 text-lg font-bold ${change > 0.03 ? "text-good" : change < -0.03 ? "text-bad" : ""}`}>
+              <FlagIcon flag={change > 0.03 ? "green" : change < -0.03 ? "red" : "orange"} /> {fmtPct(lang, change, true)}
             </p>
             <p className="num text-xs text-muted">
               {fmtPct(lang, in3.lo / in3.last - 1, true)} … {fmtPct(lang, in3.hi / in3.last - 1, true)}
@@ -96,7 +98,9 @@ export async function ForecastCard({
             ✓ {t(lang, "verified_coverage")} {fmtPct(lang, r3.coverage!)} · {t(lang, "typical_error")} {fmtPct(lang, r3.mape ?? 0)}
           </span>
         ) : (
-          <span className="chip">⚠ {t(lang, "low_data")}</span>
+          <span className="chip">
+            <TriangleAlert className="size-3.5" aria-hidden /> {t(lang, "low_data")}
+          </span>
         )}
       </div>
 

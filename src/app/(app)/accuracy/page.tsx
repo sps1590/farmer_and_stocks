@@ -1,3 +1,4 @@
+import { BadgeCheck } from "lucide-react";
 import { requireDevice } from "@/lib/device";
 import { COMMODITY_BY_KEY } from "@/lib/catalog";
 import { fmtNum, fmtPct, t } from "@/lib/i18n";
@@ -20,7 +21,9 @@ export default async function AccuracyPage() {
       <header>
         <h1 className="text-2xl font-bold">{t(lang, "accuracy_title")}</h1>
         <p className="mt-1 text-sm text-muted">{t(lang, "accuracy_intro")}</p>
-        <p className="chip mt-2">🎯 {t(lang, "accuracy_target")}</p>
+        <p className="chip mt-2">
+          <BadgeCheck className="size-3.5" aria-hidden /> {t(lang, "accuracy_target")}
+        </p>
       </header>
 
       <section>
@@ -45,7 +48,7 @@ export default async function AccuracyPage() {
                       <span className="font-semibold">
                         {c!.icon} {lang === "bn" ? c!.name_bn : c!.name_en}
                       </span>
-                      <span className="block text-[11px] text-muted">
+                      <span className="block text-xs text-muted">
                         {e.rows[0].model} · {fmtNum(lang, e.rows[0].n_points)} {t(lang, "months")}
                       </span>
                     </td>
@@ -66,10 +69,10 @@ export default async function AccuracyPage() {
                             {reliable ? (ok ? "✓ " : "⚠ ") : ""}
                             {fmtNum(lang, r.coverage * 100, 1)}%
                           </span>
-                          <span className="block text-[11px] text-muted">
+                          <span className="block text-xs text-muted">
                             {t(lang, "mape")} {fmtPct(lang, r.mape ?? 0)}
                           </span>
-                          <span className="block text-[11px] text-muted">
+                          <span className="block text-xs text-muted">
                             {fmtNum(lang, r.n_test)} {t(lang, "tested_on")}
                           </span>
                         </td>
@@ -79,7 +82,7 @@ export default async function AccuracyPage() {
                 ))}
               </tbody>
             </table>
-            <p className="border-t border-border px-3 py-2 text-[11px] text-muted">
+            <p className="border-t border-border px-3 py-2 text-xs text-muted">
               {t(lang, "coverage")} = {t(lang, "verified_coverage")} · {t(lang, "low_data")}: &lt; {fmtNum(lang, 20)} {t(lang, "tested_on")}
             </p>
           </div>
@@ -94,7 +97,7 @@ export default async function AccuracyPage() {
           <div className="card p-3">
             <p className="text-xs text-muted">{t(lang, "next_day_rain")}</p>
             <p className="num text-2xl font-bold">{weather.forecast.n && weather.forecast.rain_hit !== null ? fmtPct(lang, weather.forecast.rain_hit) : "–"}</p>
-            <p className="num text-[11px] text-muted">n = {fmtNum(lang, weather.forecast.n)}</p>
+            <p className="num text-xs text-muted">n = {fmtNum(lang, weather.forecast.n)}</p>
           </div>
           <div className="card p-3">
             <p className="text-xs text-muted">{t(lang, "tmax_error")}</p>
@@ -103,7 +106,7 @@ export default async function AccuracyPage() {
           <div className="card col-span-2 p-3">
             <p className="text-xs text-muted">{t(lang, "crowd_agreement")}</p>
             <p className="num text-2xl font-bold">{weather.crowd.n && weather.crowd.agree !== null ? fmtPct(lang, weather.crowd.agree) : "–"}</p>
-            <p className="num text-[11px] text-muted">n = {fmtNum(lang, weather.crowd.n)}</p>
+            <p className="num text-xs text-muted">n = {fmtNum(lang, weather.crowd.n)}</p>
           </div>
         </div>
       </section>
@@ -119,7 +122,7 @@ export default async function AccuracyPage() {
                 <span className="block">
                   {t(lang, "last_update")}: {new Date(s.started_at).toLocaleString(lang === "bn" ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", dateStyle: "medium", timeStyle: "short" })}
                 </span>
-                {s.message && <span className="block max-w-56 truncate text-[10px]" title={s.message}>{s.message}</span>}
+                {s.message && <span className="block max-w-56 truncate text-xs" title={s.message}>{s.message}</span>}
               </span>
             </li>
           ))}

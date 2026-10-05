@@ -10,6 +10,7 @@ const bengali = Noto_Sans_Bengali({ variable: "--font-bengali", subsets: ["benga
 const display = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000"),
   title: "Krishi Bazar AI — কৃষি বাজার",
   description: "Weather, crop prices and AI forecasts for Bangladesh farmers and traders",
   appleWebApp: { capable: true, title: "Krishi Bazar", statusBarStyle: "default" },

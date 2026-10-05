@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleCheck, CloudDrizzle, CloudRainWind, Flame, Leaf, Snowflake, Sun, Thermometer, ThermometerSnowflake, ThermometerSun, Tornado, type LucideIcon } from "lucide-react";
 import { useState, useTransition } from "react";
 import { submitWeather } from "@/lib/actions/reports";
 import { useI18n } from "./I18nProvider";
@@ -7,17 +8,17 @@ import type { DictKey } from "@/lib/i18n";
 
 type Answer = { rain: "none" | "light" | "heavy"; heat: number; storm: boolean };
 
-const RAIN: { v: Answer["rain"]; icon: string; key: DictKey }[] = [
-  { v: "none", icon: "☀️", key: "rain_none" },
-  { v: "light", icon: "🌦️", key: "rain_light" },
-  { v: "heavy", icon: "🌧️", key: "rain_heavy" },
+const RAIN: { v: Answer["rain"]; icon: LucideIcon; key: DictKey }[] = [
+  { v: "none", icon: Sun, key: "rain_none" },
+  { v: "light", icon: CloudDrizzle, key: "rain_light" },
+  { v: "heavy", icon: CloudRainWind, key: "rain_heavy" },
 ];
-const HEAT: { v: number; icon: string; key: DictKey }[] = [
-  { v: 1, icon: "🥶", key: "heat_1" },
-  { v: 2, icon: "🙂", key: "heat_2" },
-  { v: 3, icon: "😊", key: "heat_3" },
-  { v: 4, icon: "🥵", key: "heat_4" },
-  { v: 5, icon: "🔥", key: "heat_5" },
+const HEAT: { v: number; icon: LucideIcon; key: DictKey }[] = [
+  { v: 1, icon: Snowflake, key: "heat_1" },
+  { v: 2, icon: ThermometerSnowflake, key: "heat_2" },
+  { v: 3, icon: Thermometer, key: "heat_3" },
+  { v: 4, icon: ThermometerSun, key: "heat_4" },
+  { v: 5, icon: Flame, key: "heat_5" },
 ];
 
 /** Three tap questions; the answer is saved automatically after the last tap. */
@@ -44,7 +45,9 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
   if (done) {
     return (
       <section className="card flex items-center justify-between gap-3 p-4">
-        <p className="font-semibold text-good">✓ {t("thanks_weather")}</p>
+        <p className="flex items-center gap-2 font-semibold text-good">
+          <CircleCheck className="size-5 shrink-0" aria-hidden /> {t("thanks_weather")}
+        </p>
         <button
           type="button"
           className="tap shrink-0 text-sm"
@@ -69,7 +72,7 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
         <div className="grid grid-cols-3 gap-2">
           {RAIN.map((o) => (
             <button key={o.v} type="button" className="tap flex-col" aria-label={t(o.key)} aria-pressed={rain === o.v} onClick={() => setRain(o.v)}>
-              <span aria-hidden className="text-2xl">{o.icon}</span>
+              <o.icon className="size-7 text-primary" aria-hidden />
               <span className="text-sm">{t(o.key)}</span>
             </button>
           ))}
@@ -82,8 +85,8 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
           <div className="grid grid-cols-5 gap-1.5">
             {HEAT.map((o) => (
               <button key={o.v} type="button" className="tap flex-col px-1" aria-label={t(o.key)} aria-pressed={heat === o.v} onClick={() => setHeat(o.v)}>
-                <span aria-hidden className="text-2xl">{o.icon}</span>
-                <span className="text-[11px] leading-tight">{t(o.key)}</span>
+                <o.icon className="size-6 text-primary" aria-hidden />
+                <span className="text-xs leading-tight">{t(o.key)}</span>
               </button>
             ))}
           </div>
@@ -95,10 +98,10 @@ export function WeatherCheckin({ slot, existing }: { slot: 1 | 2 | 3; existing: 
           <legend className="mb-2 font-bold">{t("q_storm")}</legend>
           <div className="grid grid-cols-2 gap-2">
             <button type="button" className="tap" disabled={pending} onClick={() => save(true)}>
-              🌪️ {t("yes")}
+              <Tornado className="size-5" aria-hidden /> {t("yes")}
             </button>
             <button type="button" className="tap" disabled={pending} onClick={() => save(false)}>
-              🍃 {t("no")}
+              <Leaf className="size-5" aria-hidden /> {t("no")}
             </button>
           </div>
         </fieldset>

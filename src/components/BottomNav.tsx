@@ -1,15 +1,16 @@
 "use client";
 
+import { House, Menu, Sprout, TrendingUp, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "./I18nProvider";
 import type { DictKey } from "@/lib/i18n";
 
-const ITEMS: { href: string; key: DictKey; icon: string; also?: string[] }[] = [
-  { href: "/today", key: "nav_home", icon: "◉" },
-  { href: "/farmer", key: "nav_grow", icon: "❋" },
-  { href: "/trader", key: "nav_market", icon: "↗" },
-  { href: "/settings", key: "nav_more", icon: "☰", also: ["/accuracy"] },
+const ITEMS: { href: string; key: DictKey; icon: LucideIcon; also?: string[] }[] = [
+  { href: "/today", key: "nav_home", icon: House },
+  { href: "/farmer", key: "nav_grow", icon: Sprout },
+  { href: "/trader", key: "nav_market", icon: TrendingUp },
+  { href: "/settings", key: "nav_more", icon: Menu, also: ["/accuracy"] },
 ];
 
 /** Floating glass navigation pill. */
@@ -29,13 +30,11 @@ export function BottomNav({ role }: { role: string }) {
               <Link
                 href={i.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] font-bold transition-colors ${
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-2xl text-xs font-bold transition-colors ${
                   active ? "bg-primary-soft text-primary" : "text-muted hover:text-foreground"
                 }`}
               >
-                <span aria-hidden className={`text-xl leading-none ${active ? "drop-shadow-[0_0_10px_var(--primary)]" : ""}`}>
-                  {i.icon}
-                </span>
+                <i.icon aria-hidden className={`size-6 ${active ? "drop-shadow-[0_0_10px_var(--primary)]" : ""}`} strokeWidth={active ? 2.4 : 2} />
                 {t(i.key)}
               </Link>
             </li>

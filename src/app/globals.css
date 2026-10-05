@@ -1,41 +1,92 @@
 @import "tailwindcss";
 
 /*
- * "Aurora" design system.
- * Dark-first (deep midnight + emerald/cyan/violet aurora, frosted glass),
- * with a high-contrast "daylight" theme for use outdoors.
- * Theme is chosen by <html data-theme="dark|light|system">.
+ * Krishi Bazar AI — "Aurora" design system (see docs/brand-guidelines.md).
+ *
+ * Tokens are layered:
+ *   1. PRIMITIVES  raw brand values (palette, scales). Never used directly in components.
+ *   2. SEMANTIC    what a value is for (background, primary, flag-green...), per theme.
+ *   3. COMPONENT   per-component knobs (button, card, nav) built from semantic tokens.
+ *
+ * Theme is chosen by <html data-theme="dark|light|system">; dark is the brand default,
+ * light is the high-contrast "daylight" theme for use outdoors.
  */
 
+/* ---------- 1. Primitives ---------- */
+:root {
+  /* Brand: emerald = growth, cyan = data, violet = intelligence, midnight = canvas */
+  --emerald-300: #6ee7b7;
+  --emerald-400: #34d399;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+  --cyan-400: #22d3ee;
+  --cyan-600: #0891b2;
+  --teal-300: #5eead4;
+  --violet-400: #a78bfa;
+  --violet-600: #7c3aed;
+  --midnight-950: #060a13;
+  --midnight-900: #0b1220;
+  --midnight-800: #0e1524;
+  --slate-400: #93a1b8;
+  --slate-600: #526179;
+  --mist-50: #f3f6fb;
+  --mist-100: #eef3fb;
+  --white: #ffffff;
+  /* Signal colours (flags, status) */
+  --green-400: #4ade80;
+  --amber-400: #fbbf24;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --red-400: #f87171;
+  --red-700: #b91c1c;
+
+  /* Scales */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 999px;
+  --icon-sm: 1rem; /* 16px inline with text */
+  --icon-md: 1.25rem; /* 20px default UI icon */
+  --icon-lg: 1.5rem; /* 24px navigation / emphasis */
+  --icon-stroke: 2;
+  --dur-fast: 120ms; /* press feedback */
+  --dur-base: 200ms; /* state changes */
+  --dur-slow: 350ms; /* entrances */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tap-min: 2.75rem; /* 44px minimum touch target */
+}
+
+/* ---------- 2. Semantic (dark = default) ---------- */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --background: #060a13;
+  --background: var(--midnight-950);
   --surface: rgba(255, 255, 255, 0.045);
-  --surface-solid: #0e1524;
+  --surface-solid: var(--midnight-800);
   --surface-2: rgba(255, 255, 255, 0.07);
-  --foreground: #eef3fb;
-  --muted: #93a1b8;
+  --foreground: var(--mist-100);
+  --muted: var(--slate-400);
   --border: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.16);
-  --primary: #34d399;
-  --primary-2: #22d3ee;
-  --primary-hover: #5eead4;
+  --primary: var(--emerald-400);
+  --primary-2: var(--cyan-400);
+  --primary-hover: var(--teal-300);
   --primary-soft: rgba(52, 211, 153, 0.14);
   --primary-foreground: #03140e;
-  --accent: #a78bfa;
-  --good: #34d399;
-  --bad: #f87171;
-  --warn: #fbbf24;
-  --chart-line: #34d399;
+  --accent: var(--violet-400);
+  --good: var(--emerald-400);
+  --bad: var(--red-400);
+  --warn: var(--amber-400);
+  --chart-line: var(--emerald-400);
   --chart-band: rgba(52, 211, 153, 0.16);
   --chart-grid: rgba(255, 255, 255, 0.07);
   --ring: rgba(34, 211, 238, 0.45);
-  --flag-green: #4ade80;
+  --flag-green: var(--green-400);
   --flag-green-bg: rgba(74, 222, 128, 0.13);
-  --flag-orange: #fbbf24;
+  --flag-orange: var(--amber-400);
   --flag-orange-bg: rgba(251, 191, 36, 0.13);
-  --flag-red: #f87171;
+  --flag-red: var(--red-400);
   --flag-red-bg: rgba(248, 113, 113, 0.13);
   --glow: 0 0 0 1px rgba(52, 211, 153, 0.35), 0 8px 30px -8px rgba(34, 211, 238, 0.45);
   --shadow: 0 10px 40px -18px rgba(0, 0, 0, 0.8);
@@ -47,32 +98,32 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --background: #f3f6fb;
+  --background: var(--mist-50);
   --surface: rgba(255, 255, 255, 0.82);
-  --surface-solid: #ffffff;
+  --surface-solid: var(--white);
   --surface-2: rgba(15, 23, 42, 0.05);
-  --foreground: #0b1220;
-  --muted: #526179;
+  --foreground: var(--midnight-900);
+  --muted: var(--slate-600);
   --border: rgba(15, 23, 42, 0.09);
   --border-strong: rgba(15, 23, 42, 0.18);
-  --primary: #059669;
-  --primary-2: #0891b2;
-  --primary-hover: #047857;
+  --primary: var(--emerald-600);
+  --primary-2: var(--cyan-600);
+  --primary-hover: var(--emerald-700);
   --primary-soft: rgba(5, 150, 105, 0.1);
-  --primary-foreground: #ffffff;
-  --accent: #7c3aed;
-  --good: #047857;
-  --bad: #b91c1c;
-  --warn: #b45309;
-  --chart-line: #059669;
+  --primary-foreground: var(--white);
+  --accent: var(--violet-600);
+  --good: var(--emerald-700);
+  --bad: var(--red-700);
+  --warn: var(--amber-700);
+  --chart-line: var(--emerald-600);
   --chart-band: rgba(5, 150, 105, 0.13);
   --chart-grid: rgba(15, 23, 42, 0.08);
   --ring: rgba(8, 145, 178, 0.4);
-  --flag-green: #047857;
+  --flag-green: var(--emerald-700);
   --flag-green-bg: #dcfce7;
-  --flag-orange: #92400e;
+  --flag-orange: var(--amber-800);
   --flag-orange-bg: #fef3c7;
-  --flag-red: #b91c1c;
+  --flag-red: var(--red-700);
   --flag-red-bg: #fee2e2;
   --glow: 0 0 0 1px rgba(5, 150, 105, 0.25), 0 8px 24px -10px rgba(8, 145, 178, 0.45);
   --shadow: 0 8px 30px -16px rgba(15, 23, 42, 0.25);
@@ -85,32 +136,32 @@
 @media (prefers-color-scheme: light) {
   :root[data-theme="system"] {
     color-scheme: light;
-    --background: #f3f6fb;
+    --background: var(--mist-50);
     --surface: rgba(255, 255, 255, 0.82);
-    --surface-solid: #ffffff;
+    --surface-solid: var(--white);
     --surface-2: rgba(15, 23, 42, 0.05);
-    --foreground: #0b1220;
-    --muted: #526179;
+    --foreground: var(--midnight-900);
+    --muted: var(--slate-600);
     --border: rgba(15, 23, 42, 0.09);
     --border-strong: rgba(15, 23, 42, 0.18);
-    --primary: #059669;
-    --primary-2: #0891b2;
-    --primary-hover: #047857;
+    --primary: var(--emerald-600);
+    --primary-2: var(--cyan-600);
+    --primary-hover: var(--emerald-700);
     --primary-soft: rgba(5, 150, 105, 0.1);
-    --primary-foreground: #ffffff;
-    --accent: #7c3aed;
-    --good: #047857;
-    --bad: #b91c1c;
-    --warn: #b45309;
-    --chart-line: #059669;
+    --primary-foreground: var(--white);
+    --accent: var(--violet-600);
+    --good: var(--emerald-700);
+    --bad: var(--red-700);
+    --warn: var(--amber-700);
+    --chart-line: var(--emerald-600);
     --chart-band: rgba(5, 150, 105, 0.13);
     --chart-grid: rgba(15, 23, 42, 0.08);
     --ring: rgba(8, 145, 178, 0.4);
-    --flag-green: #047857;
+    --flag-green: var(--emerald-700);
     --flag-green-bg: #dcfce7;
-    --flag-orange: #92400e;
+    --flag-orange: var(--amber-800);
     --flag-orange-bg: #fef3c7;
-    --flag-red: #b91c1c;
+    --flag-red: var(--red-700);
     --flag-red-bg: #fee2e2;
     --glow: 0 0 0 1px rgba(5, 150, 105, 0.25), 0 8px 24px -10px rgba(8, 145, 178, 0.45);
     --shadow: 0 8px 30px -16px rgba(15, 23, 42, 0.25);
@@ -118,6 +169,18 @@
     --aurora-2: rgba(34, 211, 238, 0.14);
     --aurora-3: rgba(139, 92, 246, 0.1);
   }
+}
+
+/* ---------- 3. Component tokens ---------- */
+:root {
+  --card-radius: var(--radius-lg);
+  --button-radius: var(--radius-md);
+  --button-min-height: 3.1rem;
+  --control-radius: 0.9rem;
+  --control-min-height: 3rem;
+  --chip-radius: var(--radius-full);
+  --nav-radius: var(--radius-xl);
+  --hero-radius: var(--radius-xl);
 }
 
 @theme inline {
@@ -182,7 +245,7 @@ h2,
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: var(--card-radius);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -195,14 +258,15 @@ h2,
   background:
     linear-gradient(var(--surface-solid), var(--surface-solid)) padding-box,
     linear-gradient(135deg, var(--primary), var(--primary-2), var(--accent)) border-box;
-  border-radius: 1.25rem;
+  border-radius: var(--card-radius);
   box-shadow: var(--glow);
 }
 
 /* Large, thumb-friendly tap targets: the whole app is tap-only. */
 .tap {
-  min-height: 3rem;
-  border-radius: 0.9rem;
+  min-height: var(--control-min-height);
+  border-radius: var(--control-radius);
+  cursor: pointer;
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--foreground);
@@ -212,7 +276,7 @@ h2,
   justify-content: center;
   gap: 0.45rem;
   padding: 0.5rem 0.9rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+  transition: background-color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
   user-select: none;
   backdrop-filter: blur(12px);
 }
@@ -241,11 +305,13 @@ a:focus-visible {
 }
 .tap:disabled {
   opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .btn-primary {
-  min-height: 3.1rem;
-  border-radius: 1rem;
+  min-height: var(--button-min-height);
+  border-radius: var(--button-radius);
+  cursor: pointer;
   background: linear-gradient(120deg, var(--primary), var(--primary-2));
   color: var(--primary-foreground);
   font-weight: 800;
@@ -255,7 +321,7 @@ a:focus-visible {
   gap: 0.5rem;
   padding: 0.55rem 1.25rem;
   box-shadow: var(--glow);
-  transition: filter 0.15s ease, transform 0.08s ease;
+  transition: filter var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
 .btn-primary:hover {
   filter: brightness(1.08);
@@ -275,7 +341,7 @@ a:focus-visible {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.2rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--chip-radius);
   background: var(--surface-2);
   color: var(--muted);
   border: 1px solid var(--border);
@@ -308,7 +374,7 @@ input[type="range"].slider {
   position: relative;
   overflow: hidden;
   color: var(--hero-fg);
-  border-radius: 1.5rem;
+  border-radius: var(--hero-radius);
   background: radial-gradient(120% 90% at 0% 0%, #0f766e 0%, transparent 55%), radial-gradient(90% 80% at 100% 0%, #0e7490 0%, transparent 60%),
     linear-gradient(160deg, #0b2b2a, #0a1a2f);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -338,7 +404,8 @@ input[type="range"].slider {
   min-height: 3.5rem;
   padding: 0.7rem 0.95rem;
   text-align: left;
-  transition: background-color 0.12s ease;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 .row-tap:active,
 .row-tap:hover {
@@ -366,7 +433,7 @@ input[type="range"].slider {
 .nav-pill {
   background: color-mix(in srgb, var(--surface-solid) 78%, transparent);
   border: 1px solid var(--border-strong);
-  border-radius: 1.5rem;
+  border-radius: var(--nav-radius);
   box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(22px) saturate(160%);
   -webkit-backdrop-filter: blur(22px) saturate(160%);
@@ -399,7 +466,7 @@ input[type="range"].slider {
   }
 }
 .rise {
-  animation: rise 0.35s ease both;
+  animation: rise var(--dur-slow) var(--ease-out) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

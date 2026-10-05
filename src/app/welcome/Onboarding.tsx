@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowLeft, ArrowRight, Bell, Handshake, MapPin, Store, Tractor } from "lucide-react";
+import { BrandHeader, LogoMark } from "@/components/Logo";
 import { useState, useTransition } from "react";
 import type { DictKey, Lang } from "@/lib/i18n";
 import { createDevice, setWelcomeLanguage } from "@/lib/actions/device";
@@ -49,7 +51,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
   return (
     <div>
       <header className="mb-6">
-        <p className="text-sm font-bold text-primary">🌾 {t("app_name")}</p>
+        <BrandHeader name={t("app_name")} />
         <div className="mt-3 flex gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
             <span key={s} className={`h-2 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-border"}`} />
@@ -59,9 +61,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
       {current === "lang" && (
         <section>
-          <p className="text-5xl" aria-hidden>
-            🌾
-          </p>
+          <LogoMark size={72} />
           <h1 className="mt-3 text-3xl font-extrabold">{t("welcome_title")}</h1>
           <p className="mt-2 text-muted">{t("welcome_body")}</p>
           <h2 className="mb-3 mt-8 font-bold">{t("choose_language")}</h2>
@@ -90,10 +90,10 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
           <h1 className="mb-4 text-2xl font-extrabold">{t("who_are_you")}</h1>
           <div className="grid gap-3">
             {([
-              ["farmer", "🧑‍🌾", "role_farmer"],
-              ["trader", "📦", "role_trader"],
-              ["both", "🤝", "role_both"],
-            ] as const).map(([r, icon, key]) => (
+              ["farmer", Tractor, "role_farmer"],
+              ["trader", Store, "role_trader"],
+              ["both", Handshake, "role_both"],
+            ] as const).map(([r, Icon, key]) => (
               <button
                 key={r}
                 type="button"
@@ -104,7 +104,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
                   go(1);
                 }}
               >
-                <span aria-hidden className="text-3xl">{icon}</span> {t(key)}
+                <Icon className="size-7 text-primary" aria-hidden /> {t(key)}
               </button>
             ))}
           </div>
@@ -113,7 +113,9 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
       {current === "location" && (
         <section>
-          <h1 className="mb-4 text-2xl font-extrabold">📍 {t("location_title")}</h1>
+          <h1 className="mb-4 flex items-center gap-2 text-2xl font-extrabold">
+            <MapPin className="size-6 text-primary" aria-hidden /> {t("location_title")}
+          </h1>
           <LocationPicker lang={lang} t={t} divisions={divisions} districts={districts} value={loc} onChange={setLoc} onDone={() => go(1)} />
         </section>
       )}
@@ -126,10 +128,10 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
               {picked.length} {t("selected_count")}
             </span>
             <span className="flex gap-2">
-              <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setPicked(commodities.map((c) => c.key))}>
+              <button type="button" className="tap min-h-11 px-3 text-sm" onClick={() => setPicked(commodities.map((c) => c.key))}>
                 {t("select_all")}
               </button>
-              <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setPicked([])}>
+              <button type="button" className="tap min-h-11 px-3 text-sm" onClick={() => setPicked([])}>
                 {t("clear_all")}
               </button>
             </span>
@@ -154,7 +156,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
           </div>
           <div className="sticky bottom-0 -mx-4 mt-4 bg-background/95 px-4 py-3 backdrop-blur">
             <button type="button" className="btn-primary w-full" disabled={!picked.length} onClick={() => go(1)}>
-              {t("next")} →
+              {t("next")} <ArrowRight className="size-5" aria-hidden />
             </button>
           </div>
         </section>
@@ -162,7 +164,9 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
       {current === "pushes" && (
         <section>
-          <h1 className="text-2xl font-extrabold">🔔 {t("how_many_reminders")}</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold">
+            <Bell className="size-6 text-primary" aria-hidden /> {t("how_many_reminders")}
+          </h1>
           <p className="mb-4 text-muted">{t("reminders_hint")}</p>
           <div className="grid grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((n) => (
@@ -178,7 +182,7 @@ export function Onboarding({ initialLang, dicts, divisions, districts, commoditi
 
       {step > 0 && (
         <button type="button" className="tap mt-6" onClick={() => go(-1)} disabled={pending}>
-          ← {t("back")}
+          <ArrowLeft className="size-4" aria-hidden /> {t("back")}
         </button>
       )}
     </div>

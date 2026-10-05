@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, LocateFixed, MapPin } from "lucide-react";
 import { useState, useTransition } from "react";
 import { clearGpsLocation, saveGpsLocation } from "@/lib/actions/device";
 import { fmtNum, type DictKey, type Lang } from "@/lib/i18n";
@@ -39,14 +40,15 @@ export function GpsButton({
       {state.lat !== null && state.lon !== null && (
         <div className="flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm">
           <span>
-            📍 <b>{state.place ?? t("village_gps")}</b>
+            <MapPin className="mr-1 inline size-4 text-primary" aria-hidden />
+            <b>{state.place ?? t("village_gps")}</b>
             <span className="num block text-xs text-muted">
               {fmtNum(lang, state.lat, 3)}°N, {fmtNum(lang, state.lon, 3)}°E
             </span>
           </span>
           <button
             type="button"
-            className="tap min-h-9 px-3 text-xs"
+            className="tap min-h-11 px-3 text-xs"
             disabled={pending}
             onClick={() =>
               start(async () => {
@@ -61,10 +63,12 @@ export function GpsButton({
         </div>
       )}
       <button type="button" className="tap w-full" disabled={pending || msg === "gps_saving"} onClick={locate}>
-        📍 {t("use_gps")}
+        <LocateFixed className="size-5" aria-hidden /> {t("use_gps")}
       </button>
       {msg && msg !== "gps_saved" && <p className={`text-sm ${msg === "gps_saving" ? "text-muted" : "text-bad"}`}>{t(msg)}</p>}
-      {msg === "gps_saved" && <p className="text-sm text-good">✓ {t("gps_saved")}</p>}
+      {msg === "gps_saved" && <p className="flex items-center gap-1 text-sm text-good">
+          <Check className="size-4" aria-hidden /> {t("gps_saved")}
+        </p>}
     </div>
   );
 }

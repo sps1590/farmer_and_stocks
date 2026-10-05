@@ -1,3 +1,4 @@
+import { CalendarDays, CloudRain, LineChart, MapPin, Thermometer } from "lucide-react";
 import { requireDevice } from "@/lib/device";
 import { SEASON_LABEL } from "@/lib/catalog";
 import { DISTRICT_BY_KEY } from "@/lib/geo";
@@ -34,7 +35,9 @@ export default async function GrowPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-muted">📍 {place}</p>
+        <p className="flex items-center gap-1 text-sm text-muted">
+          <MapPin className="size-4 shrink-0" aria-hidden /> {place}
+        </p>
         <h1 className="text-3xl font-bold">
           <span className="text-gradient">{t(lang, "grow_title")}</span>
         </h1>
@@ -43,17 +46,23 @@ export default async function GrowPage() {
 
       {history && (
         <section className="card p-4">
-          <h2 className="section-title mb-3">📅 {t(lang, "weather_5y")}</h2>
+          <h2 className="section-title mb-3">
+            <CalendarDays className="size-5 text-primary" aria-hidden /> {t(lang, "weather_5y")}
+          </h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-xl bg-surface-2 p-3">
-              <p className="text-xs text-muted">🌧️ {t(lang, "rain_so_far")}</p>
+              <p className="flex items-center gap-1 text-xs text-muted">
+                <CloudRain className="size-4" aria-hidden /> {t(lang, "rain_so_far")}
+              </p>
               <p className="num text-2xl font-extrabold">{fmtNum(lang, history.rainNow)} mm</p>
               <p className="num text-xs text-muted">
                 {t(lang, "avg_label")}: {fmtNum(lang, history.rainAvg)} mm ({fmtPct(lang, history.rainAvg ? history.rainNow / history.rainAvg - 1 : 0, true)})
               </p>
             </div>
             <div className="rounded-xl bg-surface-2 p-3">
-              <p className="text-xs text-muted">🌡️ {t(lang, "max_temp")}</p>
+              <p className="flex items-center gap-1 text-xs text-muted">
+                <Thermometer className="size-4" aria-hidden /> {t(lang, "max_temp")}
+              </p>
               <p className="num text-2xl font-extrabold">{fmtNum(lang, history.tmaxNow, 1)}°</p>
               <p className="num text-xs text-muted">
                 {t(lang, "avg_label")}: {fmtNum(lang, history.tmaxAvg, 1)}° ({history.tmaxNow >= history.tmaxAvg ? "+" : ""}
@@ -82,7 +91,9 @@ export default async function GrowPage() {
       })}
 
       <section>
-        <h2 className="section-title mb-3">📈 {t(lang, "your_prices")}</h2>
+        <h2 className="section-title mb-3">
+          <LineChart className="size-5 text-primary" aria-hidden /> {t(lang, "your_prices")}
+        </h2>
         <div className="space-y-3">
           {device.commodities.map((k) => (
             <ForecastCard key={k} lang={lang} commodity={k} entry={forecasts.get(k)} current={prices.get(k)} />
@@ -100,7 +111,7 @@ function CropCard({ p, lang }: { p: CropPlanItem; lang: "en" | "bn" }) {
         <div className="min-w-0">
           <p className="text-lg font-bold">{lang === "bn" ? p.crop.name_bn : p.crop.name_en}</p>
           <p className="text-xs text-muted">
-            {SEASON_LABEL[p.crop.season][lang]} · {t(lang, "plant_in")} {monthName(lang, p.plantMonth)} → {t(lang, "harvest_in")}{" "}
+            {SEASON_LABEL[p.crop.season][lang]} · {t(lang, "plant_in")} {monthName(lang, p.plantMonth)} · {t(lang, "harvest_in")}{" "}
             {monthName(lang, p.harvestMonth)}
           </p>
         </div>

@@ -1,3 +1,5 @@
+import { ArrowLeft, Package, PencilLine, ShoppingBasket, Tags } from "lucide-react";
+import { ItemAvatar } from "@/components/icons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireDevice } from "@/lib/device";
@@ -47,14 +49,12 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
 
   return (
     <div className="space-y-5">
-      <Link href="/trader" className="text-sm font-semibold text-primary">
-        ← {t(lang, "market_title")}
+      <Link href="/trader" className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary">
+        <ArrowLeft className="size-4" aria-hidden /> {t(lang, "market_title")}
       </Link>
 
       <header className="card flex items-center gap-4 p-4">
-        <span className="text-5xl" aria-hidden>
-          {c.icon}
-        </span>
+        <ItemAvatar icon={c.icon} size="lg" />
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-extrabold">{name}</h1>
           <p className="num text-3xl font-extrabold">
@@ -77,13 +77,15 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
           <div className="text-right">
             <FlagPill flag={priceFlag(o3)} lang={lang} />
             <p className="num mt-1 text-sm font-bold">{fmtPct(lang, o3.point / o3.last - 1, true)}</p>
-            <p className="text-[11px] text-muted">{t(lang, "outlook_3m")}</p>
+            <p className="text-xs text-muted">{t(lang, "outlook_3m")}</p>
           </div>
         )}
       </header>
 
       <section>
-        <h2 className="section-title mb-2">🏷️ {t(lang, "sources_today")}</h2>
+        <h2 className="section-title mb-2">
+          <Tags className="size-5 text-primary" aria-hidden /> {t(lang, "sources_today")}
+        </h2>
         <ul className="card divide-y divide-border text-sm">
           {sources.map((s) => (
             <li key={s.key} className="flex items-center justify-between px-4 py-2.5">
@@ -99,7 +101,9 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
 
       {products.length > 0 && (
         <section>
-          <h2 className="section-title mb-2">🛒 {t(lang, "products_tracked")}</h2>
+          <h2 className="section-title mb-2">
+            <ShoppingBasket className="size-5 text-primary" aria-hidden /> {t(lang, "products_tracked")}
+          </h2>
           <ul className="card divide-y divide-border text-sm">
             {products.map((p) => (
               <li key={`${p.source}|${p.name}|${p.packSize}`} className="flex items-center justify-between gap-3 px-4 py-2.5">
@@ -126,13 +130,17 @@ export default async function CommodityPage({ params }: PageProps<"/market/[comm
       <ForecastCard lang={lang} commodity={commodity} entry={entry} current={cp} />
 
       <section>
-        <h2 className="section-title mb-2">✍️ {t(lang, "report_price")}</h2>
+        <h2 className="section-title mb-2">
+          <PencilLine className="size-5 text-primary" aria-hidden /> {t(lang, "report_price")}
+        </h2>
         <PriceReporter commodity={commodity} name={name} icon={c.icon} unit={unit} reference={referencePrice(commodity, cp)} source="no_discount_note" reported={{}} />
       </section>
 
       {device.role !== "farmer" && Object.keys(outlooks).length > 0 && (
         <section>
-          <h2 className="section-title mb-2">📦 {t(lang, "stock_planner")}</h2>
+          <h2 className="section-title mb-2">
+            <Package className="size-5 text-primary" aria-hidden /> {t(lang, "stock_planner")}
+          </h2>
           <TraderBoard
             items={[{ key: commodity, name, icon: c.icon, unit, buy: referencePrice(commodity, cp), outlooks, verified: Boolean(entry?.rows.some((r) => r.n_test >= 20)), mine: true }]}
           />

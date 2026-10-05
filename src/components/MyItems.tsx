@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
+import { ItemAvatar, TrendIcon } from "./icons";
 import { useState } from "react";
 import Link from "next/link";
 import { useI18n } from "./I18nProvider";
@@ -41,7 +43,7 @@ function Delta({ value, label }: { value: number | null; label: string }) {
   const cls = flat ? "flag-orange" : value > 0 ? "flag-green" : "flag-red";
   return (
     <span className={`${cls} num inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold`}>
-      <span aria-hidden>{flat ? "■" : value > 0 ? "▲" : "▼"}</span>
+      <TrendIcon value={value} />
       <span className="sr-only">{label}</span>
       {fmtPct(lang, value, true)}
     </span>
@@ -64,7 +66,7 @@ export function MyItems({ items }: { items: MyItem[] }) {
     <div className="space-y-2">
       <div className="segmented grid-cols-3" role="group" aria-label={t("watchlist")}>
         {PERIODS.map(([p, label]) => (
-          <button key={p} type="button" className={`min-h-10 rounded-xl text-sm font-bold ${period === p ? "" : "text-muted"}`} aria-pressed={period === p} onClick={() => setPeriod(p)}>
+          <button key={p} type="button" className={`min-h-11 rounded-xl text-sm font-bold ${period === p ? "" : "text-muted"}`} aria-pressed={period === p} onClick={() => setPeriod(p)}>
             {t(label)}
           </button>
         ))}
@@ -74,14 +76,12 @@ export function MyItems({ items }: { items: MyItem[] }) {
         {shown.map((it) => (
           <li key={it.key}>
             <button type="button" className="row-tap" aria-expanded={open === it.key} onClick={() => setOpen(open === it.key ? null : it.key)}>
-              <span aria-hidden className="text-2xl">
-                {it.icon}
-              </span>
+              <ItemAvatar icon={it.icon} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-bold">{it.name}</span>
                 <span className="num block text-xs text-muted">
                   {it.price !== null ? `${fmtTaka(lang, it.price)}/${it.unit}` : "–"}
-                  {Object.keys(it.reported).length > 0 && ` · ✓ ${t("saved")}`}
+                  {Object.keys(it.reported).length > 0 && ` · ${t("saved")}`}
                 </span>
               </span>
               <Sparkline values={it.spark} width={64} />
@@ -93,7 +93,7 @@ export function MyItems({ items }: { items: MyItem[] }) {
               <div className="space-y-2 bg-surface-2 p-3">
                 <PriceReporter commodity={it.key} name={it.name} icon={it.icon} unit={it.unit} reference={it.reference} source={it.source} reported={it.reported} />
                 <Link href={`/market/${it.key}`} className="block text-center text-sm font-semibold text-primary">
-                  {t("details")} →
+                  {t("details")} <ChevronRight className="inline size-4" aria-hidden />
                 </Link>
               </div>
             )}

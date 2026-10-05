@@ -1,5 +1,7 @@
 "use client";
 
+import { Droplets, MapPin } from "lucide-react";
+import { WxIcon } from "./icons";
 import { useState } from "react";
 import { useI18n } from "./I18nProvider";
 import { describeCode } from "@/lib/wx";
@@ -44,7 +46,7 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
   }
 
   const chip = (active: boolean) =>
-    `flex min-w-[3.4rem] shrink-0 flex-col items-center gap-0.5 rounded-2xl border px-2 py-2 text-xs transition-colors ${
+    `flex min-h-11 min-w-[3.6rem] shrink-0 cursor-pointer flex-col items-center gap-1 rounded-2xl border px-2 py-2 text-xs transition-colors ${
       active ? "border-white/60 bg-white/20 font-bold" : "border-white/10 bg-white/5 opacity-85"
     }`;
 
@@ -52,7 +54,9 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
     <section className={`hero ${tone} rise p-4`} aria-label={t("weather_now")}>
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-xs font-semibold opacity-85">📍 {place}</p>
+          <p className="flex items-center gap-1 truncate text-xs font-semibold opacity-85">
+            <MapPin className="size-3.5 shrink-0" aria-hidden /> {place}
+          </p>
           <p className="big-num mt-1 text-6xl font-bold leading-none" aria-live="polite">
             {day ? deg(day.tmax) : now ? deg(now.temp) : "–"}
           </p>
@@ -61,13 +65,11 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
           </p>
         </div>
         {desc && (
-          <p className="text-6xl leading-none drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" aria-hidden>
-            {desc.icon}
-          </p>
+          <WxIcon code={code} isDay={day ? true : (now?.isDay ?? true)} className="size-16 shrink-0 drop-shadow-[0_8px_24px_rgba(0,0,0,0.35)]" />
         )}
       </div>
 
-      <dl className="mt-3 grid grid-cols-4 gap-1.5 text-center text-[11px]">
+      <dl className="mt-3 grid grid-cols-4 gap-1.5 text-center text-xs">
         {tiles.map(([k, v]) => (
           <div key={k} className="hero-tile px-1 py-1.5">
             <dt className="leading-tight opacity-80">{k}</dt>
@@ -80,20 +82,19 @@ export function WeatherPanel({ now, days, place }: { now: PanelNow | null; days:
         {now && (
           <button type="button" className={chip(sel === -1)} aria-pressed={sel === -1} onClick={() => setSel(-1)}>
             <span>{t("now_label")}</span>
-            <span className="text-lg" aria-hidden>
-              {describeCode(now.code, now.isDay).icon}
-            </span>
+            <WxIcon code={now.code} isDay={now.isDay} />
             <span className="num">{deg(now.temp)}</span>
           </button>
         )}
         {days.map((d, i) => (
           <button key={d.date} type="button" className={chip(sel === i)} aria-pressed={sel === i} onClick={() => setSel(i)}>
             <span>{dayName(lang, d.date)}</span>
-            <span className="text-lg" aria-hidden>
-              {describeCode(d.weather_code ?? 0).icon}
-            </span>
+            <WxIcon code={d.weather_code ?? 0} />
             <span className="num">{deg(d.tmax)}</span>
-            <span className="num text-[10px] opacity-80">💧{fmtNum(lang, d.precip_prob ?? 0)}%</span>
+            <span className="num inline-flex items-center gap-0.5 text-xs opacity-80">
+              <Droplets className="size-3" aria-hidden />
+              {fmtNum(lang, d.precip_prob ?? 0)}%
+            </span>
           </button>
         ))}
       </div>

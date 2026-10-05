@@ -1,3 +1,5 @@
+import { BadgeCheck, ChevronRight, RefreshCw } from "lucide-react";
+import { BrandHeader } from "@/components/Logo";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { requireDevice } from "@/lib/device";
@@ -17,23 +19,23 @@ export default async function MorePage() {
   return (
     <div className="space-y-5">
       <header className="rise">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Krishi Bazar · AI</p>
-        <h1 className="text-3xl font-bold">
+        <BrandHeader name={t(lang, "app_name")} />
+        <h1 className="mt-3 text-3xl font-bold">
           <span className="text-gradient">{t(lang, "more_title")}</span>
         </h1>
       </header>
 
       <section className="card-glow p-4">
-        <h2 className="section-title">⟳ {t(lang, "auto_collect")}</h2>
+        <h2 className="section-title">
+          <RefreshCw className="size-5 text-primary" aria-hidden /> {t(lang, "auto_collect")}
+        </h2>
         <p className="mt-1 text-sm text-muted">{t(lang, "auto_collect_hint")}</p>
       </section>
 
       <Link href="/accuracy" className="card row-tap rounded-2xl">
-        <span className="text-2xl" aria-hidden>
-          🎯
-        </span>
+        <BadgeCheck className="size-6 shrink-0 text-primary" aria-hidden />
         <span className="flex-1 font-bold">{t(lang, "see_accuracy")}</span>
-        <span aria-hidden>→</span>
+        <ChevronRight className="size-5 shrink-0 text-muted" aria-hidden />
       </Link>
 
       <SettingsForm

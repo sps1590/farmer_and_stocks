@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { geoChildren } from "@/lib/actions/device";
 import type { DictKey, Lang } from "@/lib/i18n";
@@ -116,7 +117,7 @@ export function LocationPicker({ lang, t, divisions, districts, value, onChange,
           )}
           {onDone && (
             <button type="button" className="tap w-full text-sm text-muted" onClick={() => onDone(value)}>
-              {t("skip")} →
+              {t("skip")} <ArrowRight className="size-4" aria-hidden />
             </button>
           )}
         </>
@@ -147,7 +148,7 @@ export function LocationPicker({ lang, t, divisions, districts, value, onChange,
           )}
           {onDone && (
             <button type="button" className="tap w-full text-sm text-muted" onClick={() => onDone(value)}>
-              {t("skip")} →
+              {t("skip")} <ArrowRight className="size-4" aria-hidden />
             </button>
           )}
         </>

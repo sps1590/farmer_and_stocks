@@ -1,5 +1,6 @@
 "use client";
 
+import { RotateCcw } from "lucide-react";
 import { useState, useTransition } from "react";
 import { startOver } from "@/lib/actions/device";
 import { useI18n } from "./I18nProvider";
@@ -12,7 +13,7 @@ export function StartOver() {
   if (!asking) {
     return (
       <button type="button" className="tap w-full text-sm text-muted" onClick={() => setAsking(true)}>
-        ↺ {t("start_over")}
+        <RotateCcw className="size-4" aria-hidden /> {t("start_over")}
       </button>
     );
   }
@@ -24,7 +25,7 @@ export function StartOver() {
           {t("back")}
         </button>
         <button type="button" className="tap border-bad text-bad" disabled={pending} onClick={() => start(() => startOver())}>
-          ↺ {t("start_over")}
+          <RotateCcw className="size-4" aria-hidden /> {t("start_over")}
         </button>
       </div>
     </div>

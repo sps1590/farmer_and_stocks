@@ -1,0 +1,38 @@
+/* Shared styles for marketing assets (matches docs/brand-guidelines.md). */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&display=swap");
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 100%; height: 100%; }
+body {
+  font-family: "Inter", "Noto Sans Bengali", sans-serif;
+  color: #eef3fb;
+  background:
+    radial-gradient(45% 60% at 12% 15%, rgba(16,185,129,.38), transparent 70%),
+    radial-gradient(40% 55% at 88% 8%, rgba(34,211,238,.28), transparent 70%),
+    radial-gradient(50% 55% at 70% 95%, rgba(139,92,246,.26), transparent 72%),
+    #060a13;
+  overflow: hidden;
+}
+.display { font-family: "Space Grotesk", "Noto Sans Bengali", sans-serif; font-weight: 700; letter-spacing: -0.02em; line-height: 1.12; }
+.grad { background: linear-gradient(120deg, #34d399, #22d3ee 60%, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.muted { color: #a9b6cb; }
+.brand { display: flex; align-items: center; gap: .55em; font-family: "Space Grotesk", sans-serif; font-weight: 700; }
+.brand img { height: 1.9em; width: 1.9em; }
+.chips { display: flex; flex-wrap: wrap; gap: .5em; }
+.chip { padding: .45em .9em; border-radius: 999px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); font-weight: 600; white-space: nowrap; }
+.cta { display: inline-flex; align-items: center; gap: .4em; padding: .7em 1.3em; border-radius: 1em; font-weight: 700; color: #03140e; background: linear-gradient(120deg, #34d399, #22d3ee); box-shadow: 0 0 0 1px rgba(52,211,153,.4), 0 14px 40px -12px rgba(34,211,238,.6); }
+.glass { background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.12); border-radius: 1.2em; }
+.g { color: #4ade80; } .r { color: #f87171; } .o { color: #fbbf24; }
+.dot { display: inline-block; width: .6em; height: .6em; border-radius: 50%; background: currentColor; }
+
+/* Phone mock-up built in CSS */
+.phone { border-radius: 2.2em; border: .35em solid #1b2536; background: #060a13; padding: .9em; box-shadow: 0 40px 90px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.08); display: flex; flex-direction: column; gap: .6em; }
+.phone .brief { border-radius: 1em; padding: .8em; border: 1px solid transparent; background: linear-gradient(#0e1524,#0e1524) padding-box, linear-gradient(135deg,#34d399,#22d3ee,#a78bfa) border-box; }
+.phone .brief small { letter-spacing: .08em; color: #93a1b8; font-weight: 700; font-size: .68em; }
+.phone .brief p { font-weight: 600; font-size: .8em; margin-top: .45em; line-height: 1.35; }
+.phone .btn { margin-top: .6em; text-align: center; padding: .55em; border-radius: .8em; font-weight: 700; font-size: .78em; color: #03140e; background: linear-gradient(120deg,#34d399,#22d3ee); }
+.phone .wx { border-radius: 1em; padding: .8em; background: linear-gradient(160deg,#0f4f4a,#0a1a2f); border: 1px solid rgba(255,255,255,.12); display: flex; justify-content: space-between; align-items: center; }
+.phone .wx b { font-family: "Space Grotesk", "Noto Sans Bengali", sans-serif; font-size: 2.2em; line-height: 1.1; }
+.phone .row { display: flex; justify-content: space-between; align-items: center; padding: .55em .7em; font-size: .78em; font-weight: 600; }
+.phone .row + .row { border-top: 1px solid rgba(255,255,255,.08); }
+.pill { padding: .15em .6em; border-radius: 999px; font-weight: 700; font-size: .9em; }
+.pill.g { background: rgba(74,222,128,.14); } .pill.r { background: rgba(248,113,113,.14); } .pill.o { background: rgba(251,191,36,.14); }

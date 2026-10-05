@@ -1,5 +1,6 @@
 "use client";
 
+import { Bell, Check, Languages, MapPin, ShoppingBasket, SunMoon, User } from "lucide-react";
 import { useState, useTransition } from "react";
 import { setTheme, updateSetting } from "@/lib/actions/device";
 import { useI18n } from "./I18nProvider";
@@ -45,7 +46,9 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
   }
 
   const savedMark = (field: string) =>
-    savedField === field && !pending ? <span className="ml-2 text-xs font-normal text-good">✓ {t("saved_settings")}</span> : null;
+    savedField === field && !pending ? <span className="ml-2 inline-flex items-center gap-0.5 text-xs font-normal text-good">
+        <Check className="size-3.5" aria-hidden /> {t("saved_settings")}
+      </span> : null;
 
   function saveLocation(v: LocationValue) {
     if (!v.district) return;
@@ -62,7 +65,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
     <div className="space-y-4" aria-busy={pending}>
       <section className="card space-y-3 p-4">
         <h2 className="section-title">
-          📍 {t("location_title")}
+          <MapPin className="size-5 text-primary" aria-hidden /> {t("location_title")}
           {savedMark("location")}
         </h2>
         <LocationPicker
@@ -83,7 +86,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
       <section className="card p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="section-title">
-            🧺 {t("commodities")}
+            <ShoppingBasket className="size-5 text-primary" aria-hidden /> {t("commodities")}
             {savedMark("commodities")}
           </h2>
           <span className="text-xs text-muted">
@@ -91,10 +94,10 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
           </span>
         </div>
         <div className="mb-3 flex gap-2">
-          <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setCommodities(commodities.map((c) => c.key))}>
+          <button type="button" className="tap min-h-11 px-3 text-sm" onClick={() => setCommodities(commodities.map((c) => c.key))}>
             {t("select_all")}
           </button>
-          <button type="button" className="tap min-h-9 px-3 text-sm" onClick={() => setCommodities(picked.slice(0, 1))}>
+          <button type="button" className="tap min-h-11 px-3 text-sm" onClick={() => setCommodities(picked.slice(0, 1))}>
             {t("clear_all")}
           </button>
         </div>
@@ -122,7 +125,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
       <section className="card grid gap-4 p-4">
         <div>
           <h2 className="section-title mb-2">
-            ◐ {t("theme")}
+            <SunMoon className="size-5 text-primary" aria-hidden /> {t("theme")}
             {savedMark("theme")}
           </h2>
           <div className="segmented grid-cols-3">
@@ -146,7 +149,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
         </div>
         <div>
           <h2 className="section-title mb-2">
-            🌐 {t("language")}
+            <Languages className="size-5 text-primary" aria-hidden /> {t("language")}
             {savedMark("lang")}
           </h2>
           <div className="grid grid-cols-2 gap-2">
@@ -159,7 +162,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
         </div>
         <div>
           <h2 className="section-title mb-2">
-            👤 {t("role")}
+            <User className="size-5 text-primary" aria-hidden /> {t("role")}
             {savedMark("role")}
           </h2>
           <div className="grid grid-cols-3 gap-2">
@@ -172,7 +175,7 @@ export function SettingsForm({ device, divisions, districts, commodities }: Prop
         </div>
         <div>
           <h2 className="section-title mb-2">
-            🔔 {t("reminders")}
+            <Bell className="size-5 text-primary" aria-hidden /> {t("reminders")}
             {savedMark("pushes")}
           </h2>
           <div className="grid grid-cols-4 gap-2">
