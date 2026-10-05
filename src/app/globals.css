@@ -410,3 +410,33 @@ input[type="range"].slider {
     transition: none;
   }
 }
+
+/* Horizontal swipe rows (shortcuts, opportunity cards): bleed to the screen
+   edges so the next card peeks in and invites a swipe. */
+.snap-row {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  margin-inline: -1rem;
+  padding-inline: 1rem;
+  scroll-padding-inline: 1rem;
+  padding-bottom: 0.25rem;
+}
+.snap-row::-webkit-scrollbar {
+  display: none;
+}
+.snap-row > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

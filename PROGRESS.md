@@ -13,6 +13,19 @@ Living record of what's built, decisions made with the owner, and a dated change
   Optional phone OTP later.
 - **Repo**: public GitHub repo `farmer_and_stocks`, separate from farm-manager.
 
+## What's built (v5, 2026-10-05) — Home rebuilt
+
+- One prioritized column: "Today's brief" (up to 3 plain sentences from
+  weather, the biggest 7-day move in the watchlist and the strongest call,
+  plus ONE next action: check in -> update prices -> act). Rules live in
+  `src/lib/brief.ts` (pure, tested).
+- Interactive weather (`WeatherPanel`): tap Now or any of 7 days to swap the
+  headline and detail tiles. `describeCode` moved to `src/lib/wx.ts` so
+  client components can use it.
+- Shortcut row; swipeable "Plant next" and "Opportunities & risks" cards
+  (`.snap-row`); watchlist with Today / 7 days / 3 months switch, sparklines
+  and show-all. The three vanity KPI tiles were removed.
+
 ## What's built (v4, 2026-09-27)
 
 - 5-year price history: resumable backfill of TCB's public archive
@@ -103,6 +116,8 @@ Living record of what's built, decisions made with the owner, and a dated change
 
 ## Changelog
 
+- 2026-10-05 — v5: Home rebuilt around a daily brief, interactive weather,
+  swipe cards and a watchlist.
 - 2026-09-27 — v4: TCB 5-year archive backfill, twice-daily automatic price
   collection, longest-series forecasting, "Aurora" futuristic redesign + themes.
 - 2026-09-27 — v3: "Update today's price" button, per-product daily price
